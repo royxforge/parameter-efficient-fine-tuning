@@ -69,7 +69,6 @@ frontend/yarn-error.log*
 *.csv
 *.jsonl
 backend/datasets/
-backend/models/
 
 # Training outputs
 checkpoints/
