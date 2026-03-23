@@ -1,15 +1,35 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  Activity,
+  AlertTriangle,
+  ArrowLeft,
+  ArrowRight,
+  BarChart3,
+  CheckCircle2,
+  Clock3,
+  Cpu,
+  Download,
+  Play,
+  Zap,
+} from 'lucide-react';
 import { usePipelineStore } from '@/store/pipelineStore';
 import type { TrainingProgress } from '@/types';
-import { Play, CheckCircle, AlertCircle, Zap, Activity, Cpu, BarChart3, Download } from 'lucide-react';
 
 export default function Training() {
-  const { trainingConfig, setTrainingJobId, setTrainingProgress, setCurrentStep, trainingJobId, trainingProgress } = usePipelineStore();
+  const {
+    trainingConfig,
+    setTrainingJobId,
+    setTrainingProgress,
+    setCurrentStep,
+    trainingJobId,
+    trainingProgress,
+  } = usePipelineStore();
+
   const [isStarting, setIsStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
+
   useEffect(() => {
     if (!trainingJobId) return;
 
@@ -17,20 +37,17 @@ export default function Training() {
       try {
         const response = await fetch(`http://localhost:8000/api/training-progress/${trainingJobId}`);
         if (!response.ok) return;
-        
+
         const progress: TrainingProgress = await response.json();
         setTrainingProgress(progress);
-        
-        console.log('Training progress:', progress);
-      } catch (err) {
-        console.error('Failed to fetch progress:', err);
+      } catch {
+        // Ignore polling errors to keep UI stable during transient failures.
       }
     };
 
     pollProgress();
-    
     const interval = setInterval(pollProgress, 2000);
-    
+
     return () => clearInterval(interval);
   }, [trainingJobId, setTrainingProgress]);
 
@@ -41,390 +58,290 @@ export default function Training() {
     setError(null);
 
     try {
-      console.log('Starting training with config:', trainingConfig);
-      
       const response = await fetch('http://localhost:8000/api/start-training', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           config: trainingConfig,
-          job_name: `Training-${Date.now()}`
+          job_name: `Training-${Date.now()}`,
         }),
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Training start failed:', errorText);
         throw new Error(`Failed to start training: ${response.status}`);
       }
 
       const data = await response.json();
-      console.log('Training started, job ID:', data.job_id);
       setTrainingJobId(data.job_id);
-    } catch (err: any) {
-      console.error('Error starting training:', err);
-      setError(err.message);
+    } catch (startError: any) {
+      setError(startError.message || 'Failed to start training job');
     } finally {
       setIsStarting(false);
     }
   };
 
-  const handleBack = () => {
-    setCurrentStep('hyperparameters');
-  };
+  const status = trainingProgress?.status ?? 'idle';
+  const isRunning = status === 'running' || status === 'queued' || status === 'initializing';
+  const isCompleted = status === 'completed';
+  const isFailed = status === 'failed';
 
-  const handleNext = () => {
-    setCurrentStep('export');
-  };
+  const progressPercent = useMemo(() => {
+    if (!trainingProgress) return 0;
+    const total = Math.max(trainingProgress.total_steps, 1);
+    return Math.min(100, Math.round((trainingProgress.current_step / total) * 100));
+  }, [trainingProgress]);
 
-  const isTraining = trainingProgress?.status === 'running';
-  const isCompleted = trainingProgress?.status === 'completed';
-  const isFailed = trainingProgress?.status === 'failed';
+  const trainingTimeLabel = trainingProgress?.eta_seconds
+    ? `${Math.max(0, Math.floor(trainingProgress.eta_seconds / 60))} min remaining`
+    : 'ETA pending';
 
   return (
-    <div className="space-y-8 animate-fadeIn">
-      <div className="text-center">
-        <div className="inline-block mb-3">
-          <div className="px-4 py-1.5 rounded-full bg-green-500/10 border border-green-500/20 text-green-400 text-xs font-bold tracking-wider">
-            STEP 4 OF 5
-          </div>
-        </div>
-        <h2 className="text-4xl font-bold gradient-text mb-3">Training</h2>
-        <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-          Monitor your QLoRA fine-tuning progress in real-time
+    <div className="space-y-8 animate-fade-in-up">
+      <section className="text-center">
+        <span className="badge-pill">Step 4 of 5</span>
+        <h2 className="section-title mt-4">Training Execution</h2>
+        <p className="section-description mx-auto mt-3 max-w-3xl">
+          Launch the run, track real-time metrics, and monitor memory usage with clear progress visibility.
         </p>
-      </div>
+      </section>
 
       {!trainingJobId && (
-        <div className="relative bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-2xl p-12 text-center overflow-hidden backdrop-blur-sm">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-green-500/10 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-green-500/5 rounded-full blur-3xl"></div>
-          
-          <div className="relative">
-            <div className="mb-10">
-              <div className="w-24 h-24 bg-gradient-to-br from-green-600 to-green-500 rounded-2xl flex items-center justify-center mx-auto mb-6 glow-strong shadow-xl shadow-green-500/30 hover:scale-110 transition-transform duration-300">
-                <Play className="w-12 h-12 text-white" />
-              </div>
-              <h3 className="text-3xl font-bold text-white mb-4">
-                Ready to Start Training
-              </h3>
-            </div>
-            
-            <p className="text-gray-300 mb-4 text-xl">
-              Your model will be fine-tuned using QLoRA with 4-bit quantization for optimal memory efficiency.
-            </p>
-            
-            <div className="inline-block text-left mb-8 bg-white/5 rounded-xl p-6 border border-white/10">
-              <div className="grid grid-cols-2 gap-x-8 gap-y-3 text-sm">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                  <span className="text-gray-400">Model:</span>
-                  <span className="text-white font-semibold">{trainingConfig?.model_id?.split('/').pop() || 'Not configured'}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                  <span className="text-gray-400">Epochs:</span>
-                  <span className="text-white font-semibold">{trainingConfig?.num_epochs || 3}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                  <span className="text-gray-400">Dataset:</span>
-                  <span className="text-white font-semibold">{trainingConfig?.dataset_id?.split('-')[0] || 'Not configured'}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                  <span className="text-gray-400">Learning Rate:</span>
-                  <span className="text-white font-semibold">{trainingConfig?.learning_rate || 0.0002}</span>
-                </div>
-              </div>
-            </div>
-            
-            <div className="mb-10 p-6 bg-green-500/10 border border-green-500/30 rounded-xl text-left max-w-2xl mx-auto backdrop-blur-sm">
-              <p className="text-sm font-bold text-green-400 mb-3 flex items-center gap-2">
-                <Zap className="w-4 h-4" />
-                📋 Dataset Format Requirements:
+        <section className="surface-card-strong space-y-6">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <h3 className="text-2xl font-semibold text-slate-900">Ready to start training</h3>
+              <p className="mt-2 text-sm text-slate-600">
+                Confirm settings and begin the fine-tuning job using your configured QLoRA profile.
               </p>
-              <p className="text-xs text-gray-300 mb-3">Your JSON dataset file must have a "text" field for each entry:</p>
-              <pre className="text-xs bg-black/50 p-4 rounded-lg border border-white/20 text-gray-300 overflow-x-auto">
-{`[
-  {"text": "Your first training text..."},
-  {"text": "Your second training text..."},
-  {"text": "Your third training text..."}
-]`}
-              </pre>
             </div>
-            
             <button
               onClick={handleStartTraining}
               disabled={isStarting || !trainingConfig}
-              className="px-12 py-5 bg-green-600 text-white rounded-xl hover:bg-green-500 disabled:bg-gray-600 disabled:cursor-not-allowed flex items-center gap-3 mx-auto font-bold text-xl transition-all duration-300 hover:glow-strong hover:scale-105 shadow-xl shadow-green-500/30"
+              className="primary-button px-6 py-3"
             >
               {isStarting ? (
                 <>
-                  <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Starting Training...
+                  <Activity className="h-4 w-4 animate-spin" />
+                  Starting job
                 </>
               ) : (
                 <>
-                  <Play className="w-6 h-6" />
-                  Start Training Now
+                  <Play className="h-4 w-4" />
+                  Start Training
                 </>
               )}
             </button>
-            {!trainingConfig && (
-              <p className="text-sm text-red-400 mt-5 font-semibold">
-                ⚠️ Please configure hyperparameters first
-              </p>
-            )}
           </div>
-        </div>
+
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <article className="metric-tile">
+              <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Model</p>
+              <p className="mt-2 text-sm font-semibold text-slate-900">
+                {trainingConfig?.model_id?.split('/').pop() ?? 'Not configured'}
+              </p>
+            </article>
+            <article className="metric-tile">
+              <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Dataset</p>
+              <p className="mt-2 text-sm font-semibold text-slate-900">
+                {trainingConfig?.dataset_id ?? 'Not configured'}
+              </p>
+            </article>
+            <article className="metric-tile">
+              <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Epochs</p>
+              <p className="mt-2 text-2xl font-semibold text-slate-900">{trainingConfig?.num_epochs ?? '-'}</p>
+            </article>
+            <article className="metric-tile">
+              <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Learning rate</p>
+              <p className="mt-2 text-2xl font-semibold text-slate-900">{trainingConfig?.learning_rate ?? '-'}</p>
+            </article>
+          </div>
+
+          {!trainingConfig && (
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">
+              Configure hyperparameters before starting training.
+            </div>
+          )}
+        </section>
       )}
 
       {error && (
-        <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-5 flex items-start gap-4 backdrop-blur-sm animate-fadeIn">
-          <div className="w-10 h-10 bg-red-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
-            <AlertCircle className="w-6 h-6 text-red-400" />
+        <section className="rounded-2xl border border-red-200 bg-red-50 p-5">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="mt-0.5 h-5 w-5 text-red-500" />
+            <div>
+              <p className="text-sm font-semibold text-red-700">Training failed to start</p>
+              <p className="mt-1 text-sm text-red-600">{error}</p>
+            </div>
           </div>
-          <div>
-            <h4 className="font-bold text-red-400 text-lg mb-1">Training Failed to Start</h4>
-            <p className="text-sm text-red-300">{error}</p>
-          </div>
-        </div>
+        </section>
       )}
 
       {trainingJobId && trainingProgress && (
-        <div className="space-y-6 animate-fadeIn">
-          <div className={`border-2 rounded-2xl p-8 backdrop-blur-sm transition-all duration-300 ${
-            isCompleted ? 'bg-gradient-to-br from-green-500/20 to-green-500/5 border-green-500/40 glow-strong shadow-xl shadow-green-500/30' :
-            isFailed ? 'bg-red-500/10 border-red-500/30' :
-            'bg-gradient-to-br from-white/5 to-white/[0.02] border-white/10'
-          }`}>
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center gap-5">
-                {isCompleted ? (
-                  <div className="w-16 h-16 bg-green-500/20 rounded-xl flex items-center justify-center shadow-lg shadow-green-500/30">
-                    <CheckCircle className="w-9 h-9 text-green-400" />
-                  </div>
-                ) : isFailed ? (
-                  <div className="w-16 h-16 bg-red-500/20 rounded-xl flex items-center justify-center">
-                    <AlertCircle className="w-9 h-9 text-red-400" />
-                  </div>
-                ) : (
-                  <div className="w-16 h-16 bg-green-500/20 rounded-xl flex items-center justify-center animate-pulse">
-                    <Zap className="w-9 h-9 text-green-400" />
-                  </div>
-                )}
-                <div>
-                  <h3 className="text-2xl font-bold text-white mb-1">
-                    {isCompleted ? '🎉 Training Completed' :
-                     isFailed ? '❌ Training Failed' :
-                     '⚡ Training in Progress'}
-                  </h3>
-                  <p className="text-sm text-gray-400 font-mono bg-black/30 inline-block px-3 py-1 rounded-lg">
-                    Job ID: {trainingJobId.slice(0, 16)}...
-                  </p>
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-4xl font-bold text-white mb-1">
-                  {trainingProgress.current_step} / {trainingProgress.total_steps}
-                </div>
-                <div className="text-sm text-gray-400 font-semibold">steps</div>
-              </div>
+        <section
+          className={`surface-card-strong space-y-6 ${
+            isCompleted
+              ? 'border-teal-200 bg-gradient-to-br from-teal-50 to-white'
+              : isFailed
+                ? 'border-red-200 bg-red-50/60'
+                : 'border-slate-200 bg-white'
+          }`}
+        >
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="badge-pill">
+                {isCompleted ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Zap className="h-3.5 w-3.5" />}
+                Status: {status}
+              </p>
+              <h3 className="mt-3 text-2xl font-semibold text-slate-900">Training job in progress</h3>
+              <p className="mt-1 text-sm text-slate-600">Job ID: {trainingJobId}</p>
             </div>
-
-            {trainingProgress.progress_message && (
-              <div className={`mb-6 p-5 rounded-xl border transition-all duration-300 ${
-                isFailed ? 'bg-red-500/10 border-red-500/30' : 'bg-green-500/10 border-green-500/30'
-              }`}>
-                <p className={`text-sm font-bold flex items-center gap-3 ${
-                  isFailed ? 'text-red-400' : 'text-green-400'
-                }`}>
-                  <div className={`w-2.5 h-2.5 rounded-full ${
-                    isFailed ? 'bg-red-400' : 'bg-green-400 animate-pulse'
-                  }`} />
-                  {trainingProgress.progress_message}
-                </p>
-              </div>
-            )}
-
-            {isFailed && trainingProgress.error_message && (
-              <div className="mb-6 p-5 bg-red-500/10 border border-red-500/30 rounded-xl">
-                <p className="text-sm font-bold text-red-400 mb-2">Error Details:</p>
-                <p className="text-sm text-red-300 font-mono whitespace-pre-wrap bg-black/30 p-3 rounded-lg">
-                  {trainingProgress.error_message}
-                </p>
-              </div>
-            )}
-
-            <div className="mb-8">
-              <div className="flex justify-between text-sm text-gray-300 mb-4 font-bold">
-                <span>Overall Progress</span>
-                <span className="text-lg text-white">{Math.round((trainingProgress.current_step / trainingProgress.total_steps) * 100)}%</span>
-              </div>
-              <div className="w-full bg-white/10 rounded-full h-5 overflow-hidden shadow-inner">
-                <div
-                  className={`h-5 rounded-full transition-all duration-500 relative overflow-hidden ${
-                    isCompleted ? 'bg-gradient-to-r from-green-600 via-green-500 to-green-400' :
-                    isFailed ? 'bg-gradient-to-r from-red-600 to-red-400' :
-                    'bg-gradient-to-r from-green-600 via-green-500 to-green-400'
-                  }`}
-                  style={{ width: `${(trainingProgress.current_step / trainingProgress.total_steps) * 100}%` }}
-                >
-                  {!isCompleted && !isFailed && (
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-shimmer"></div>
-                  )}
-                </div>
-              </div>
+            <div className="rounded-xl bg-slate-900 px-4 py-3 text-right text-teal-300">
+              <p className="text-[11px] uppercase tracking-[0.14em]">Progress</p>
+              <p className="mt-1 text-xl font-semibold">{progressPercent}%</p>
             </div>
-
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="group bg-black/40 rounded-xl p-5 border border-white/10 hover:border-green-500/30 transition-all duration-300 hover:scale-105">
-                <div className="text-xs font-bold text-green-400 mb-2 tracking-wider">EPOCH</div>
-                <div className="text-2xl font-bold text-white group-hover:text-green-50 transition-colors">
-                  {trainingProgress.current_epoch}
-                </div>
-              </div>
-              <div className="group bg-black/40 rounded-xl p-5 border border-white/10 hover:border-green-500/30 transition-all duration-300 hover:scale-105">
-                <div className="text-xs font-bold text-green-400 mb-2 tracking-wider">LOSS</div>
-                <div className="text-2xl font-bold text-white group-hover:text-green-50 transition-colors">
-                  {trainingProgress.train_loss?.toFixed(4) || 'N/A'}
-                </div>
-              </div>
-              <div className="group bg-black/40 rounded-xl p-5 border border-white/10 hover:border-green-500/30 transition-all duration-300 hover:scale-105">
-                <div className="text-xs font-bold text-green-400 mb-2 tracking-wider">LEARNING RATE</div>
-                <div className="text-2xl font-bold text-white group-hover:text-green-50 transition-colors">
-                  {trainingProgress.learning_rate?.toExponential(2) || 'N/A'}
-                </div>
-              </div>
-              <div className="group bg-black/40 rounded-xl p-5 border border-white/10 hover:border-green-500/30 transition-all duration-300 hover:scale-105">
-                <div className="text-xs font-bold text-green-400 mb-2 tracking-wider">GRAD NORM</div>
-                <div className="text-2xl font-bold text-white group-hover:text-green-50 transition-colors">
-                  {trainingProgress.latest_metrics?.grad_norm?.toFixed(4) || 'N/A'}
-                </div>
-              </div>
-            </div>
-
-            {/* Memory Profiling Section */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-              <div className="group bg-black/40 rounded-xl p-5 border border-white/10 hover:border-purple-500/30 transition-all duration-300 hover:scale-105">
-                <div className="text-xs font-bold text-purple-400 mb-2 tracking-wider flex items-center gap-1">
-                  <Cpu className="w-3 h-3" /> GPU MEMORY
-                </div>
-                <div className="text-2xl font-bold text-white group-hover:text-purple-50 transition-colors">
-                  {trainingProgress.gpu_memory_usage ? `${trainingProgress.gpu_memory_usage.toFixed(1)}GB` : 'N/A'}
-                </div>
-              </div>
-              <div className="group bg-black/40 rounded-xl p-5 border border-white/10 hover:border-purple-500/30 transition-all duration-300 hover:scale-105">
-                <div className="text-xs font-bold text-purple-400 mb-2 tracking-wider flex items-center gap-1">
-                  <Activity className="w-3 h-3" /> GPU UTIL
-                </div>
-                <div className="text-2xl font-bold text-white group-hover:text-purple-50 transition-colors">
-                  {trainingProgress.gpu_utilization ? `${trainingProgress.gpu_utilization.toFixed(0)}%` : 'N/A'}
-                </div>
-              </div>
-              <div className="group bg-black/40 rounded-xl p-5 border border-white/10 hover:border-purple-500/30 transition-all duration-300 hover:scale-105">
-                <div className="text-xs font-bold text-purple-400 mb-2 tracking-wider flex items-center gap-1">
-                  <BarChart3 className="w-3 h-3" /> THROUGHPUT
-                </div>
-                <div className="text-2xl font-bold text-white group-hover:text-purple-50 transition-colors">
-                  {trainingProgress.samples_per_second?.toFixed(1) || 'N/A'}
-                  <span className="text-sm text-gray-400 ml-1">s/s</span>
-                </div>
-              </div>
-              <div className="group bg-black/40 rounded-xl p-5 border border-white/10 hover:border-purple-500/30 transition-all duration-300 hover:scale-105">
-                <div className="text-xs font-bold text-purple-400 mb-2 tracking-wider">VAL LOSS</div>
-                <div className="text-2xl font-bold text-white group-hover:text-purple-50 transition-colors">
-                  {trainingProgress.val_loss?.toFixed(4) || 'N/A'}
-                </div>
-              </div>
-            </div>
-
-            {trainingProgress.eta_seconds !== undefined && (
-              <div className="mt-6 pt-6 border-t border-white/10">
-                <div className="flex justify-between text-sm">
-                  <div className="flex items-center gap-2">
-                    <Zap className="w-4 h-4 text-green-400" />
-                    <span className="text-gray-400">Speed:</span>
-                    <span className="text-white font-bold">{trainingProgress.samples_per_second.toFixed(2)} samples/sec</span>
-                  </div>
-                  {trainingProgress.eta_seconds > 0 && (
-                    <div className="flex items-center gap-2">
-                      <span className="text-gray-400">ETA:</span>
-                      <span className="text-white font-bold">{Math.floor(trainingProgress.eta_seconds / 60)} minutes</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Experiment Data Download - Show when complete */}
-            {isCompleted && (
-              <div className="mt-6 pt-6 border-t border-white/10">
-                <h4 className="font-bold text-white mb-4 flex items-center gap-2">
-                  <BarChart3 className="w-5 h-5 text-green-400" />
-                  Experiment Artifacts
-                </h4>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  <a
-                    href={`http://localhost:8000/api/download-file/${trainingJobId}/training_metrics.json`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-3 bg-black/40 rounded-lg border border-white/10 hover:border-green-500/30 transition-all text-sm text-gray-300 hover:text-white"
-                  >
-                    <Download className="w-4 h-4" />
-                    Metrics JSON
-                  </a>
-                  <a
-                    href={`http://localhost:8000/storage/experiments/${trainingJobId}/loss.png`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-3 bg-black/40 rounded-lg border border-white/10 hover:border-green-500/30 transition-all text-sm text-gray-300 hover:text-white"
-                  >
-                    <BarChart3 className="w-4 h-4" />
-                    Loss Graph
-                  </a>
-                  <a
-                    href={`http://localhost:8000/storage/experiments/${trainingJobId}/metadata.json`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 px-4 py-3 bg-black/40 rounded-lg border border-white/10 hover:border-purple-500/30 transition-all text-sm text-gray-300 hover:text-white"
-                  >
-                    <Activity className="w-4 h-4" />
-                    Experiment Config
-                  </a>
-                  <a
-                    href={`http://localhost:8000/api/download-model/${trainingJobId}`}
-                    className="flex items-center gap-2 px-4 py-3 bg-green-600/20 rounded-lg border border-green-500/30 hover:bg-green-600/30 transition-all text-sm text-green-300 hover:text-green-200 font-semibold"
-                  >
-                    <Download className="w-4 h-4" />
-                    Download Model
-                  </a>
-                </div>
-              </div>
-            )}
           </div>
-        </div>
+
+          <div>
+            <div className="mb-2 flex items-center justify-between text-xs font-medium uppercase tracking-[0.12em] text-slate-500">
+              <span>
+                Step {trainingProgress.current_step} of {Math.max(trainingProgress.total_steps, 1)}
+              </span>
+              <span>{trainingTimeLabel}</span>
+            </div>
+            <div className="h-3 rounded-full bg-slate-200">
+              <div
+                className={`h-3 rounded-full transition-all duration-500 ${
+                  isFailed ? 'bg-red-500' : 'bg-gradient-to-r from-teal-600 to-cyan-500'
+                }`}
+                style={{ width: `${progressPercent}%` }}
+              />
+            </div>
+          </div>
+
+          {trainingProgress.progress_message && (
+            <div className="rounded-xl border border-slate-200 bg-slate-50/80 px-4 py-3 text-sm text-slate-700">
+              {trainingProgress.progress_message}
+            </div>
+          )}
+
+          {isFailed && trainingProgress.error_message && (
+            <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              {trainingProgress.error_message}
+            </div>
+          )}
+
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <article className="metric-tile">
+              <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Epoch</p>
+              <p className="mt-2 text-2xl font-semibold text-slate-900">{trainingProgress.current_epoch ?? '-'}</p>
+            </article>
+            <article className="metric-tile">
+              <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Train loss</p>
+              <p className="mt-2 text-2xl font-semibold text-slate-900">
+                {trainingProgress.train_loss != null ? trainingProgress.train_loss.toFixed(4) : 'N/A'}
+              </p>
+            </article>
+            <article className="metric-tile">
+              <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Validation loss</p>
+              <p className="mt-2 text-2xl font-semibold text-slate-900">
+                {trainingProgress.val_loss != null ? trainingProgress.val_loss.toFixed(4) : 'N/A'}
+              </p>
+            </article>
+            <article className="metric-tile">
+              <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Learning rate</p>
+              <p className="mt-2 text-2xl font-semibold text-slate-900">
+                {trainingProgress.learning_rate != null
+                  ? trainingProgress.learning_rate.toExponential(2)
+                  : 'N/A'}
+              </p>
+            </article>
+          </div>
+
+          <div className="grid gap-3 md:grid-cols-3">
+            <article className="metric-tile">
+              <p className="flex items-center gap-2 text-xs uppercase tracking-[0.14em] text-slate-500">
+                <Cpu className="h-3.5 w-3.5" /> GPU memory
+              </p>
+              <p className="mt-2 text-xl font-semibold text-slate-900">
+                {trainingProgress.gpu_memory_usage != null ? `${trainingProgress.gpu_memory_usage.toFixed(1)} GB` : 'N/A'}
+              </p>
+            </article>
+            <article className="metric-tile">
+              <p className="flex items-center gap-2 text-xs uppercase tracking-[0.14em] text-slate-500">
+                <BarChart3 className="h-3.5 w-3.5" /> Throughput
+              </p>
+              <p className="mt-2 text-xl font-semibold text-slate-900">
+                {trainingProgress.samples_per_second != null
+                  ? `${trainingProgress.samples_per_second.toFixed(1)} samples/sec`
+                  : 'N/A'}
+              </p>
+            </article>
+            <article className="metric-tile">
+              <p className="flex items-center gap-2 text-xs uppercase tracking-[0.14em] text-slate-500">
+                <Clock3 className="h-3.5 w-3.5" /> Runtime signal
+              </p>
+              <p className="mt-2 text-xl font-semibold text-slate-900">{trainingTimeLabel}</p>
+            </article>
+          </div>
+
+          {isCompleted && (
+            <div className="rounded-2xl border border-teal-200 bg-teal-50/70 p-4">
+              <h4 className="text-sm font-semibold text-teal-800">Training artifacts</h4>
+              <div className="mt-3 grid gap-2 md:grid-cols-2">
+                <a
+                  href={`http://localhost:8000/api/download-file/${trainingJobId}/training_metrics.json`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="secondary-button justify-start"
+                >
+                  <Download className="h-4 w-4" />
+                  Metrics JSON
+                </a>
+                <a
+                  href={`http://localhost:8000/storage/experiments/${trainingJobId}/loss.png`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="secondary-button justify-start"
+                >
+                  <Download className="h-4 w-4" />
+                  Loss chart
+                </a>
+                <a
+                  href={`http://localhost:8000/storage/experiments/${trainingJobId}/metadata.json`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="secondary-button justify-start"
+                >
+                  <Download className="h-4 w-4" />
+                  Experiment metadata
+                </a>
+                <a href={`http://localhost:8000/api/download-model/${trainingJobId}`} className="primary-button justify-start">
+                  <Download className="h-4 w-4" />
+                  Download model package
+                </a>
+              </div>
+            </div>
+          )}
+        </section>
       )}
 
-      <div className="flex justify-between pt-4">
+      <footer className="flex flex-wrap items-center justify-between gap-3">
         <button
           onClick={() => setCurrentStep('hyperparameters')}
-          disabled={isTraining}
-          className="px-8 py-4 border-2 border-white/20 text-gray-300 rounded-xl hover:bg-white/5 hover:border-white/30 font-bold text-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={isRunning}
+          className="secondary-button disabled:cursor-not-allowed disabled:opacity-60"
         >
-          ← Back to Hyperparameters
+          <ArrowLeft className="h-4 w-4" />
+          Back to Hyperparameters
         </button>
+
         {isCompleted && (
-          <button
-            onClick={handleNext}
-            className="group px-8 py-4 bg-green-600 text-white rounded-xl hover:bg-green-500 font-bold text-lg transition-all duration-300 hover:glow-strong hover:scale-105 shadow-lg shadow-green-500/20 flex items-center gap-2"
-          >
-            Export Code
-            <span className="group-hover:translate-x-1 transition-transform">→</span>
+          <button onClick={() => setCurrentStep('export')} className="primary-button px-6 py-3">
+            Continue to Export
+            <ArrowRight className="h-4 w-4" />
           </button>
         )}
-      </div>
+      </footer>
     </div>
   );
 }
