@@ -13,6 +13,8 @@ import {
   Rocket,
   Sparkles,
   Tag,
+  Copy,
+  Check,
 } from 'lucide-react';
 import { usePipelineStore } from '@/store/pipelineStore';
 
@@ -34,6 +36,7 @@ export default function CodeGeneration() {
   const [isDownloadingModel, setIsDownloadingModel] = useState(false);
   const [downloadError, setDownloadError] = useState<string | null>(null);
   const [isLoadingEval, setIsLoadingEval] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const fetchEvaluationData = async () => {
@@ -57,7 +60,7 @@ export default function CodeGeneration() {
           setExperimentMetadata(metadata);
         }
       } catch {
-        // Keep UI functional even when metadata endpoints are unavailable.
+        // Keep UI functional
       } finally {
         setIsLoadingEval(false);
       }
@@ -75,216 +78,30 @@ export default function CodeGeneration() {
 
   const generateSampleCode = (type: string) => {
     const modelId = modelInfo?.model_id || 'your-base-model';
-    const adapterPath = './checkpoint-final';
 
     if (type === 'inference') {
-      return `"""
-Inference script for QLoRA fine-tuned model
-"""
-import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
-from peft import PeftModel
-
-MODEL_ID = "${modelId}"
-ADAPTER_PATH = "${adapterPath}"
-
-bnb_config = BitsAndBytesConfig(
-    load_in_4bit=True,
-    bnb_4bit_quant_type="nf4",
-    bnb_4bit_use_double_quant=True,
-    bnb_4bit_compute_dtype=torch.float16,
-)
-
-base_model = AutoModelForCausalLM.from_pretrained(
-    MODEL_ID,
-    quantization_config=bnb_config,
-    device_map="auto",
-    trust_remote_code=True,
-)
-
-model = PeftModel.from_pretrained(base_model, ADAPTER_PATH)
-model.eval()
-
-tokenizer = AutoTokenizer.from_pretrained(MODEL_ID, trust_remote_code=True)
-if tokenizer.pad_token is None:
-    tokenizer.pad_token = tokenizer.eos_token
-
-def generate(prompt: str, max_new_tokens: int = 160) -> str:
-    inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
-    with torch.no_grad():
-        output = model.generate(
-            **inputs,
-            max_new_tokens=max_new_tokens,
-            do_sample=True,
-            temperature=0.7,
-            top_p=0.9,
-            repetition_penalty=1.1,
-            pad_token_id=tokenizer.pad_token_id,
-        )
-    return tokenizer.decode(output[0], skip_special_tokens=True)
-
-if __name__ == "__main__":
-    prompt = "Write a concise summary about model fine-tuning."
-    print(generate(prompt))
-`;
+      return `"""\nInference script for QLoRA fine-tuned model\n"""\nimport torch\nfrom transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig\nfrom peft import PeftModel\n\nMODEL_ID = "${modelId}"\nADAPTER_PATH = "./checkpoint-final"\n\nbnb_config = BitsAndBytesConfig(\n    load_in_4bit=True,\n    bnb_4bit_quant_type="nf4",\n    bnb_4bit_use_double_quant=True,\n    bnb_4bit_compute_dtype=torch.float16,\n)\n\nbase_model = AutoModelForCausalLM.from_pretrained(\n    MODEL_ID,\n    quantization_config=bnb_config,\n    device_map="auto",\n    trust_remote_code=True,\n)\n\nmodel = PeftModel.from_pretrained(base_model, ADAPTER_PATH)\nmodel.eval()\n\ntokenizer = AutoTokenizer.from_pretrained(MODEL_ID, trust_remote_code=True)\nif tokenizer.pad_token is None:\n    tokenizer.pad_token = tokenizer.eos_token\n\ndef generate(prompt: str, max_new_tokens: int = 160) -> str:\n    inputs = tokenizer(prompt, return_tensors="pt").to(model.device)\n    with torch.no_grad():\n        output = model.generate(\n            **inputs,\n            max_new_tokens=max_new_tokens,\n            do_sample=True,\n            temperature=0.7,\n            top_p=0.9,\n            repetition_penalty=1.1,\n            pad_token_id=tokenizer.pad_token_id,\n        )\n    return tokenizer.decode(output[0], skip_special_tokens=True)\n\nif __name__ == "__main__":\n    prompt = "Write a concise summary about model fine-tuning."\n    print(generate(prompt))`;
     }
 
     if (type === 'gradio') {
-      return `"""
-Gradio demo for fine-tuned model
-"""
-import gradio as gr
-import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
-from peft import PeftModel
-
-MODEL_ID = "${modelId}"
-ADAPTER_PATH = "${adapterPath}"
-
-bnb_config = BitsAndBytesConfig(
-    load_in_4bit=True,
-    bnb_4bit_quant_type="nf4",
-    bnb_4bit_use_double_quant=True,
-    bnb_4bit_compute_dtype=torch.float16,
-)
-
-base_model = AutoModelForCausalLM.from_pretrained(
-    MODEL_ID,
-    quantization_config=bnb_config,
-    device_map="auto",
-    trust_remote_code=True,
-)
-model = PeftModel.from_pretrained(base_model, ADAPTER_PATH)
-model.eval()
-
-tokenizer = AutoTokenizer.from_pretrained(MODEL_ID, trust_remote_code=True)
-if tokenizer.pad_token is None:
-    tokenizer.pad_token = tokenizer.eos_token
-
-def run_generation(prompt, max_tokens, temperature):
-    inputs = tokenizer(prompt, return_tensors="pt").to(model.device)
-    with torch.no_grad():
-        output = model.generate(
-            **inputs,
-            max_new_tokens=int(max_tokens),
-            temperature=float(temperature),
-            top_p=0.9,
-            do_sample=True,
-            repetition_penalty=1.1,
-            pad_token_id=tokenizer.pad_token_id,
-        )
-    return tokenizer.decode(output[0], skip_special_tokens=True)
-
-with gr.Blocks() as app:
-    gr.Markdown("# Fine-tuned model demo")
-    prompt = gr.Textbox(label="Prompt", lines=4)
-    max_tokens = gr.Slider(minimum=32, maximum=512, value=160, step=16, label="Max new tokens")
-    temperature = gr.Slider(minimum=0.1, maximum=1.5, value=0.7, step=0.1, label="Temperature")
-    output = gr.Textbox(label="Output", lines=10)
-    run_btn = gr.Button("Generate")
-
-    run_btn.click(run_generation, [prompt, max_tokens, temperature], output)
-
-if __name__ == "__main__":
-    app.launch(server_port=7860)
-`;
+      return `"""\nGradio demo for fine-tuned model\n"""\nimport gradio as gr\nimport torch\nfrom transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig\nfrom peft import PeftModel\n\nMODEL_ID = "${modelId}"\nADAPTER_PATH = "./checkpoint-final"\n\n# ... (setup same as inference)\n\ndef run_generation(prompt, max_tokens, temperature):\n    inputs = tokenizer(prompt, return_tensors="pt").to(model.device)\n    with torch.no_grad():\n        output = model.generate(\n            **inputs,\n            max_new_tokens=int(max_tokens),\n            temperature=float(temperature),\n            top_p=0.9,\n            do_sample=True,\n            repetition_penalty=1.1,\n            pad_token_id=tokenizer.pad_token_id,\n        )\n    return tokenizer.decode(output[0], skip_special_tokens=True)\n\nwith gr.Blocks() as app:\n    gr.Markdown("# Fine-tuned model demo")\n    prompt = gr.Textbox(label="Prompt", lines=4)\n    max_tokens = gr.Slider(minimum=32, maximum=512, value=160, step=16, label="Max new tokens")\n    temperature = gr.Slider(minimum=0.1, maximum=1.5, value=0.7, step=0.1, label="Temperature")\n    output = gr.Textbox(label="Output", lines=10)\n    run_btn = gr.Button("Generate")\n    run_btn.click(run_generation, [prompt, max_tokens, temperature], output)\n\nif __name__ == "__main__":\n    app.launch(server_port=7860)`;
     }
 
     if (type === 'api') {
-      return `"""
-FastAPI endpoint for fine-tuned model inference
-"""
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
-import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
-from peft import PeftModel
-
-MODEL_ID = "${modelId}"
-ADAPTER_PATH = "${adapterPath}"
-
-app = FastAPI(title="Fine-tuned Model API", version="1.0.0")
-
-class GenerateRequest(BaseModel):
-    prompt: str = Field(..., min_length=1)
-    max_new_tokens: int = Field(180, ge=1, le=1024)
-    temperature: float = Field(0.7, ge=0.1, le=2.0)
-
-bnb_config = BitsAndBytesConfig(
-    load_in_4bit=True,
-    bnb_4bit_quant_type="nf4",
-    bnb_4bit_use_double_quant=True,
-    bnb_4bit_compute_dtype=torch.float16,
-)
-
-base_model = AutoModelForCausalLM.from_pretrained(
-    MODEL_ID,
-    quantization_config=bnb_config,
-    device_map="auto",
-    trust_remote_code=True,
-)
-model = PeftModel.from_pretrained(base_model, ADAPTER_PATH)
-model.eval()
-
-tokenizer = AutoTokenizer.from_pretrained(MODEL_ID, trust_remote_code=True)
-if tokenizer.pad_token is None:
-    tokenizer.pad_token = tokenizer.eos_token
-
-@app.get("/health")
-def health():
-    return {"status": "ok", "model": MODEL_ID}
-
-@app.post("/generate")
-def generate(payload: GenerateRequest):
-    try:
-        inputs = tokenizer(payload.prompt, return_tensors="pt").to(model.device)
-        with torch.no_grad():
-            output = model.generate(
-                **inputs,
-                max_new_tokens=payload.max_new_tokens,
-                temperature=payload.temperature,
-                top_p=0.9,
-                do_sample=True,
-                repetition_penalty=1.1,
-                pad_token_id=tokenizer.pad_token_id,
-            )
-        text = tokenizer.decode(output[0], skip_special_tokens=True)
-        return {"result": text}
-    except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
-`;
+      return `"""\nFastAPI endpoint for fine-tuned model inference\n"""\nfrom fastapi import FastAPI, HTTPException\nfrom pydantic import BaseModel, Field\nimport torch\nfrom transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig\nfrom peft import PeftModel\n\nMODEL_ID = "${modelId}"\nADAPTER_PATH = "./checkpoint-final"\n\napp = FastAPI(title="Fine-tuned Model API", version="1.0.0")\n\nclass GenerateRequest(BaseModel):\n    prompt: str = Field(..., min_length=1)\n    max_new_tokens: int = Field(180, ge=1, le=1024)\n    temperature: float = Field(0.7, ge=0.1, le=2.0)\n\n# ... (model setup)\n\n@app.get("/health")\ndef health():\n    return {"status": "ok", "model": MODEL_ID}\n\n@app.post("/generate")\ndef generate(payload: GenerateRequest):\n    try:\n        inputs = tokenizer(payload.prompt, return_tensors="pt").to(model.device)\n        with torch.no_grad():\n            output = model.generate(**inputs, max_new_tokens=payload.max_new_tokens, temperature=payload.temperature)\n        return {"result": tokenizer.decode(output[0], skip_special_tokens=True)}\n    except Exception as exc:\n        raise HTTPException(status_code=500, detail=str(exc))`;
     }
 
-    return `# Fine-tuned model package
-
-## Base Model
-- ${modelId}
-
-## Training Highlights
-- Method: QLoRA (4-bit)
-- Learning rate: ${trainingConfig?.learning_rate ?? '2e-4'}
-- Batch size: ${trainingConfig?.batch_size ?? 4}
-- Epochs: ${trainingConfig?.num_epochs ?? 3}
-
-## Files in this package
-- adapter_model.bin
-- adapter_config.json
-- config.json
-- tokenizer files
-- training_metrics.json
-
-## Quick start
-1. Install dependencies:
-   \`\`\`bash
-   pip install torch transformers peft bitsandbytes accelerate
-   \`\`\`
-2. Run the generated inference script.
-3. Validate output quality against your test prompts.
-`;
+    return `# Fine-tuned model package\n\n## Base Model\n- ${modelId}\n\n## Training Highlights\n- Method: QLoRA (4-bit)\n- Learning rate: ${trainingConfig?.learning_rate ?? '2e-4'}\n- Batch size: ${trainingConfig?.batch_size ?? 4}\n- Epochs: ${trainingConfig?.num_epochs ?? 3}\n\n## Files\n- adapter_model.bin\n- adapter_config.json\n- config.json\n- tokenizer files\n- training_metrics.json\n\n## Quick start\n1. Install: \`pip install torch transformers peft bitsandbytes accelerate\`\n2. Run the inference script.\n3. Validate output quality.`;
   };
 
   const handleGenerate = () => {
     setGeneratedCode(generateSampleCode(selectedType));
+  };
+
+  const handleCopyCode = () => {
+    navigator.clipboard.writeText(generatedCode);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleDownloadGeneratedFile = () => {
@@ -318,9 +135,7 @@ def generate(payload: GenerateRequest):
       let filename = `model-${trainingJobId}.zip`;
       if (contentDisposition) {
         const match = contentDisposition.match(/filename="?(.+)"?/);
-        if (match) {
-          filename = match[1];
-        }
+        if (match) filename = match[1];
       }
 
       const blob = await response.blob();
@@ -339,165 +154,173 @@ def generate(payload: GenerateRequest):
 
   return (
     <div className="space-y-8 animate-fade-in-up">
-      <section className="text-center">
-        <span className="badge-pill">Step 5 of 5</span>
-        <h2 className="section-title mt-4">Export and Deployment</h2>
-        <p className="section-description mx-auto mt-3 max-w-3xl">
-          Download model artifacts, inspect evaluation outputs, and generate deployment-ready code templates.
-        </p>
-      </section>
+      {/* Header */}
+      <div className="section-header">
+        <div className="badge-primary inline-flex">
+          <Rocket className="h-3.5 w-3.5" />
+          Step 5 of 5
+        </div>
+        <h2>Export & Deployment</h2>
+        <p>Download model artifacts, inspect evaluation outputs, and generate deployment-ready code templates.</p>
+      </div>
 
-      <section className="surface-card-strong space-y-5 border-teal-200/70 bg-gradient-to-br from-teal-50 to-white">
-        <div className="flex flex-wrap items-start justify-between gap-4">
+      {/* Model artifact download */}
+      <div className="card card-shadow-lg border-emerald-500/20 p-4 sm:p-6 space-y-5 animate-scale-in">
+        <div className="flex flex-col sm:flex-row flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="badge-pill">
+            <div className="badge-emerald inline-flex">
               <CheckCircle2 className="h-3.5 w-3.5" />
               Package your trained output
-            </p>
-            <h3 className="mt-3 text-2xl font-semibold text-slate-900">Model artifact bundle</h3>
-            <p className="mt-1 text-sm text-slate-600">
-              Includes adapter weights, config files, tokenizer assets, and training metrics for reproducible deployment.
+            </div>
+            <h3 className="mt-3 text-lg sm:text-xl font-bold">Model artifact bundle</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Includes adapter weights, configs, tokenizer assets, and training metrics.
             </p>
           </div>
           <button
             onClick={handleDownloadModel}
             disabled={isDownloadingModel || !trainingJobId}
-            className="primary-button px-6 py-3"
+            className="btn-primary w-full sm:w-auto justify-center"
           >
             <Download className="h-4 w-4" />
-            {isDownloadingModel ? 'Downloading...' : 'Download model package'}
+            {isDownloadingModel ? 'Downloading...' : 'Download package'}
           </button>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          <article className="metric-tile">
-            <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Base model</p>
-            <p className="mt-2 text-sm font-semibold text-slate-900">{modelInfo?.model_id ?? 'N/A'}</p>
-          </article>
-          <article className="metric-tile">
-            <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Training job</p>
-            <p className="mt-2 text-sm font-semibold text-slate-900">{trainingJobId ?? 'N/A'}</p>
-          </article>
-          <article className="metric-tile">
-            <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Learning rate</p>
-            <p className="mt-2 text-2xl font-semibold text-slate-900">{trainingConfig?.learning_rate ?? '-'}</p>
-          </article>
-          <article className="metric-tile">
-            <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Epochs</p>
-            <p className="mt-2 text-2xl font-semibold text-slate-900">{trainingConfig?.num_epochs ?? '-'}</p>
-          </article>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="metric-tile">
+            <p className="label-text">Base model</p>
+            <p className="mt-1.5 text-sm font-semibold truncate">{modelInfo?.model_id ?? 'N/A'}</p>
+          </div>
+          <div className="metric-tile">
+            <p className="label-text">Training job</p>
+            <p className="mt-1.5 text-sm font-semibold font-mono truncate">{trainingJobId ?? 'N/A'}</p>
+          </div>
+          <div className="metric-tile">
+            <p className="label-text">Learning rate</p>
+            <p className="mt-1.5 text-2xl font-bold">{trainingConfig?.learning_rate ?? '-'}</p>
+          </div>
+          <div className="metric-tile">
+            <p className="label-text">Epochs</p>
+            <p className="mt-1.5 text-2xl font-bold">{trainingConfig?.num_epochs ?? '-'}</p>
+          </div>
         </div>
 
         {downloadError && (
-          <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700">{downloadError}</div>
+          <div className="rounded-xl border border-destructive/20 bg-destructive/[0.03] p-3 text-sm text-destructive">
+            {downloadError}
+          </div>
         )}
-      </section>
+      </div>
 
+      {/* Evaluation metrics */}
       {(evalMetrics || isLoadingEval) && (
-        <section className="surface-card space-y-4">
-          <h3 className="text-lg font-semibold text-slate-900">Evaluation snapshot</h3>
+        <div className="card p-5 space-y-4 animate-fade-in-up">
+          <h3 className="text-base font-semibold">Evaluation snapshot</h3>
 
           {isLoadingEval ? (
-            <p className="text-sm text-slate-600">Loading evaluation metrics...</p>
+            <p className="text-sm text-muted-foreground animate-pulse-soft">Loading evaluation metrics...</p>
           ) : (
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-              <article className="metric-tile">
-                <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Perplexity</p>
-                <p className="mt-2 text-2xl font-semibold text-slate-900">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="metric-tile">
+                <p className="label-text">Perplexity</p>
+                <p className="mt-1.5 text-2xl font-bold font-mono">
                   {evalMetrics?.perplexity != null ? evalMetrics.perplexity.toFixed(2) : 'N/A'}
                 </p>
-              </article>
-              <article className="metric-tile">
-                <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Final loss</p>
-                <p className="mt-2 text-2xl font-semibold text-slate-900">
+              </div>
+              <div className="metric-tile">
+                <p className="label-text">Final loss</p>
+                <p className="mt-1.5 text-2xl font-bold font-mono">
                   {evalMetrics?.final_loss != null ? evalMetrics.final_loss.toFixed(4) : 'N/A'}
                 </p>
-              </article>
-              <article className="metric-tile">
-                <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Train time</p>
-                <p className="mt-2 text-2xl font-semibold text-slate-900">
+              </div>
+              <div className="metric-tile">
+                <p className="label-text">Train time</p>
+                <p className="mt-1.5 text-2xl font-bold">
                   {evalMetrics?.training_time_seconds != null
                     ? `${Math.floor(evalMetrics.training_time_seconds / 60)}m`
                     : 'N/A'}
                 </p>
-              </article>
-              <article className="metric-tile">
-                <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Peak memory</p>
-                <p className="mt-2 text-2xl font-semibold text-slate-900">
+              </div>
+              <div className="metric-tile">
+                <p className="label-text">Peak memory</p>
+                <p className="mt-1.5 text-2xl font-bold">
                   {evalMetrics?.peak_memory_mb != null
                     ? `${(evalMetrics.peak_memory_mb / 1024).toFixed(2)} GB`
                     : 'N/A'}
                 </p>
-              </article>
+              </div>
             </div>
           )}
-        </section>
+        </div>
       )}
 
+      {/* Model card */}
       {modelCard && (
-        <section className="surface-card space-y-4">
-          <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
-            <FileCheck2 className="h-5 w-5 text-teal-700" />
+        <div className="card p-5 space-y-4 animate-fade-in-up">
+          <h3 className="flex items-center gap-2 text-base font-semibold">
+            <FileCheck2 className="h-5 w-5 text-primary" />
             Model card
           </h3>
-
-          <div className="grid gap-3 md:grid-cols-2">
-            <article className="metric-tile">
-              <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Model name</p>
-              <p className="mt-2 text-sm font-semibold text-slate-900">{modelCard.model_name ?? 'N/A'}</p>
-            </article>
-            <article className="metric-tile">
-              <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Base model</p>
-              <p className="mt-2 text-sm font-semibold text-slate-900">{modelCard.base_model ?? 'N/A'}</p>
-            </article>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="metric-tile">
+              <p className="label-text">Model name</p>
+              <p className="mt-1.5 text-sm font-semibold">{modelCard.model_name ?? 'N/A'}</p>
+            </div>
+            <div className="metric-tile">
+              <p className="label-text">Base model</p>
+              <p className="mt-1.5 text-sm font-semibold">{modelCard.base_model ?? 'N/A'}</p>
+            </div>
           </div>
-
           {modelCard.tags && modelCard.tags.length > 0 && (
             <div className="flex flex-wrap gap-2">
-              {modelCard.tags.map((tag, index) => (
-                <span key={`${tag}-${index}`} className="inline-flex items-center gap-1 rounded-full bg-slate-900 px-3 py-1 text-xs font-medium text-teal-300">
+              {modelCard.tags.map((tag, i) => (
+                <span key={`${tag}-${i}`} className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
                   <Tag className="h-3 w-3" />
                   {tag}
                 </span>
               ))}
             </div>
           )}
-
-          {modelCard.description && <p className="text-sm leading-relaxed text-slate-600">{modelCard.description}</p>}
-        </section>
+          {modelCard.description && (
+            <p className="text-sm leading-relaxed text-muted-foreground">{modelCard.description}</p>
+          )}
+        </div>
       )}
 
+      {/* Experiment metadata */}
       {experimentMetadata && (
-        <section className="surface-card space-y-3">
-          <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
-            <PackageOpen className="h-5 w-5 text-teal-700" />
+        <div className="card p-5 space-y-4 animate-fade-in-up">
+          <h3 className="flex items-center gap-2 text-base font-semibold">
+            <PackageOpen className="h-5 w-5 text-primary" />
             Experiment metadata
           </h3>
-          <div className="grid gap-3 md:grid-cols-3">
-            <article className="metric-tile">
-              <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Experiment ID</p>
-              <p className="mt-2 break-all text-xs font-semibold text-slate-800">
+          <div className="grid gap-3 sm:grid-cols-3">
+            <div className="metric-tile">
+              <p className="label-text">Experiment ID</p>
+              <p className="mt-1.5 break-all text-xs font-semibold font-mono">
                 {experimentMetadata.experiment_id ?? trainingJobId}
               </p>
-            </article>
-            <article className="metric-tile">
-              <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Seed</p>
-              <p className="mt-2 text-2xl font-semibold text-slate-900">{experimentMetadata.seed ?? '-'}</p>
-            </article>
-            <article className="metric-tile">
-              <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Artifacts</p>
-              <p className="mt-2 text-2xl font-semibold text-slate-900">
+            </div>
+            <div className="metric-tile">
+              <p className="label-text">Seed</p>
+              <p className="mt-1.5 text-2xl font-bold">{experimentMetadata.seed ?? '-'}</p>
+            </div>
+            <div className="metric-tile">
+              <p className="label-text">Artifacts</p>
+              <p className="mt-1.5 text-2xl font-bold">
                 {experimentMetadata.artifacts ? Object.keys(experimentMetadata.artifacts).length : 0}
               </p>
-            </article>
+            </div>
           </div>
-        </section>
+        </div>
       )}
 
-      <section className="surface-card-strong space-y-5">
-        <h3 className="text-xl font-semibold text-slate-900">Generate code templates</h3>
+      {/* Code generation */}
+      <div className="card card-shadow-lg p-4 sm:p-6 space-y-5">
+        <h3 className="text-lg sm:text-xl font-bold">Generate code templates</h3>
 
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {codeTypes.map((type) => {
             const Icon = type.icon;
             const active = selectedType === type.id;
@@ -505,73 +328,97 @@ def generate(payload: GenerateRequest):
               <button
                 key={type.id}
                 onClick={() => setSelectedType(type.id)}
-                className={`rounded-2xl border p-4 text-left transition ${
-                  active
-                    ? 'border-teal-300 bg-teal-50 shadow-glow-soft'
-                    : 'border-slate-200 bg-white/80 hover:border-teal-200'
+                className={`card-hover p-4 text-left ${
+                  active ? 'border-primary/30 bg-primary/[0.03]' : ''
                 }`}
               >
-                <span className={`inline-flex rounded-xl p-2 ${active ? 'bg-slate-900 text-teal-300' : 'bg-slate-100 text-slate-600'}`}>
+                <span
+                  className={`flex h-9 w-9 items-center justify-center rounded-xl text-xs font-bold ${
+                    active ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                  }`}
+                >
                   <Icon className="h-4 w-4" />
                 </span>
-                <p className="mt-3 text-sm font-semibold text-slate-900">{type.label}</p>
-                <p className="mt-1 text-xs text-slate-600">{type.description}</p>
+                <p className="mt-3 text-sm font-semibold">{type.label}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{type.description}</p>
               </button>
             );
           })}
         </div>
 
-        <button onClick={handleGenerate} className="primary-button w-full py-3.5">
+        <button onClick={handleGenerate} className="btn-primary w-full justify-center">
           <Sparkles className="h-4 w-4" />
-          Generate {codeTypes.find((item) => item.id === selectedType)?.label}
+          Generate {codeTypes.find((t) => t.id === selectedType)?.label}
         </button>
 
         {generatedCode && (
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-950 text-slate-100">
-            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 px-4 py-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-slate-300">
-                {selectedType}.{selectedType === 'readme' ? 'md' : 'py'}
-              </p>
-              <button onClick={handleDownloadGeneratedFile} className="secondary-button border-slate-700 bg-slate-900 text-slate-100">
-                <Download className="h-4 w-4" />
-                Download file
-              </button>
+          <div className="code-block animate-scale-in">
+            <div className="code-block-header">
+              <div className="flex items-center gap-2">
+                <div className="flex gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-rose-500/60" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-amber-500/60" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-500/60" />
+                </div>
+                <span className="text-[11px] font-medium text-muted-foreground">
+                  {selectedType}.{selectedType === 'readme' ? 'md' : 'py'}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleCopyCode}
+                  className="flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1 text-xs text-muted-foreground transition hover:bg-white/5"
+                >
+                  {copied ? (
+                    <><Check className="h-3.5 w-3.5 text-emerald-400" /> Copied</>
+                  ) : (
+                    <><Copy className="h-3.5 w-3.5" /> Copy</>
+                  )}
+                </button>
+                <button
+                  onClick={handleDownloadGeneratedFile}
+                  className="flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1 text-xs text-muted-foreground transition hover:bg-white/5"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  Download
+                </button>
+              </div>
             </div>
-            <pre className="max-h-[420px] overflow-auto p-4 text-xs leading-relaxed">
+            <pre className="code-block-content">
               <code>{generatedCode}</code>
             </pre>
           </div>
         )}
-      </section>
+      </div>
 
-      <section className="surface-tint">
-        <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
-          <Rocket className="h-5 w-5 text-teal-700" />
+      {/* Next actions */}
+      <div className="card border-primary/10 bg-primary/[0.02] p-5">
+        <h3 className="flex items-center gap-2 text-base font-semibold mb-3">
+          <Rocket className="h-5 w-5 text-primary" />
           Next actions
         </h3>
-        <ul className="mt-3 space-y-2 text-sm text-slate-700">
-          <li className="flex items-start gap-2">
-            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-teal-600" />
-            Download the model package and verify inference locally.
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-teal-600" />
-            Start with the generated inference script, then deploy API or Gradio app.
-          </li>
-          <li className="flex items-start gap-2">
-            <span className="mt-1 h-1.5 w-1.5 rounded-full bg-teal-600" />
-            Track evaluation metrics and iterate on hyperparameters for improved quality.
-          </li>
+        <ul className="space-y-2 text-sm text-muted-foreground">
+          {[
+            'Download the model package and verify inference locally.',
+            'Start with the generated inference script, then deploy API or Gradio app.',
+            'Track evaluation metrics and iterate on hyperparameters for improved quality.',
+          ].map((action, i) => (
+            <li key={i} className="flex items-start gap-2">
+              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+              {action}
+            </li>
+          ))}
         </ul>
-      </section>
+      </div>
 
+      {/* Empty state */}
       {!trainingJobId && (
-        <section className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">
+        <div className="rounded-xl border border-amber-500/20 bg-amber-500/[0.03] p-4 text-sm text-amber-600 dark:text-amber-400">
           <div className="flex items-start gap-2">
-            <AlertTriangle className="mt-0.5 h-4 w-4" />
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             <span>No completed training job found. Finish training before exporting final artifacts.</span>
           </div>
-        </section>
+        </div>
       )}
     </div>
   );

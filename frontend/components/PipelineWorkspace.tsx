@@ -1,21 +1,27 @@
 "use client";
 
 import { useMemo } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
   Brain,
   BarChart3,
   Check,
-  CircleDot,
   Database,
   FileCode2,
   Gauge,
   RefreshCcw,
   Sparkles,
   TerminalSquare,
+  Bot,
+  Moon,
+  Sun,
+  ChevronRight,
 } from 'lucide-react';
 import { usePipelineStore } from '@/store/pipelineStore';
+import { useTheme } from '@/lib/theme-provider';
 import type { PipelineStep } from '@/types';
 import type { LucideIcon } from 'lucide-react';
+import { stepTransition, fadeInUp, staggerContainer, staggerItem } from '@/lib/animations';
 import ModelAnalysis from '@/components/ModelAnalysis';
 import DatasetUpload from '@/components/DatasetUpload';
 import HyperparameterTuning from '@/components/HyperparameterTuning';
@@ -35,31 +41,31 @@ const steps: Array<{
   {
     id: 'model',
     label: 'Model',
-    subtitle: 'Analyze architecture and compute profile',
+    subtitle: 'Analyze architecture and compute',
     icon: Brain,
   },
   {
     id: 'dataset',
     label: 'Dataset',
-    subtitle: 'Upload and validate training data',
+    subtitle: 'Upload and validate data',
     icon: Database,
   },
   {
     id: 'hyperparameters',
     label: 'Tuning',
-    subtitle: 'Configure and optimize training settings',
+    subtitle: 'Optimize training settings',
     icon: Gauge,
   },
   {
     id: 'training',
     label: 'Training',
-    subtitle: 'Run jobs and track live metrics',
+    subtitle: 'Run jobs and track metrics',
     icon: BarChart3,
   },
   {
     id: 'export',
     label: 'Export',
-    subtitle: 'Download artifacts and code templates',
+    subtitle: 'Download artifacts and code',
     icon: FileCode2,
   },
 ];
@@ -76,6 +82,7 @@ export default function PipelineWorkspace({ compactHeader = false }: PipelineWor
     trainingProgress,
     evalMetrics,
   } = usePipelineStore();
+  const { theme, toggleTheme } = useTheme();
 
   const currentStepIndex = Math.max(steps.findIndex((step) => step.id === currentStep), 0);
 
@@ -108,157 +115,212 @@ export default function PipelineWorkspace({ compactHeader = false }: PipelineWor
   };
 
   const renderStep = () => {
-    if (currentStep === 'model') return <ModelAnalysis />;
-    if (currentStep === 'dataset') return <DatasetUpload />;
-    if (currentStep === 'hyperparameters') return <HyperparameterTuning />;
-    if (currentStep === 'training') return <Training />;
-    return <CodeGeneration />;
+    const stepContent = (() => {
+      if (currentStep === 'model') return <ModelAnalysis />;
+      if (currentStep === 'dataset') return <DatasetUpload />;
+      if (currentStep === 'hyperparameters') return <HyperparameterTuning />;
+      if (currentStep === 'training') return <Training />;
+      return <CodeGeneration />;
+    })();
+
+    return (
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={currentStep}
+          variants={stepTransition}
+          initial="initial"
+          animate="animate"
+          exit="exit"
+        >
+          {stepContent}
+        </motion.div>
+      </AnimatePresence>
+    );
   };
 
   const estimatedVram = modelInfo ? Math.ceil((modelInfo.num_parameters * 0.55) / 1e9) : null;
 
   return (
-    <main className="relative overflow-hidden pb-10">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-4 top-24 h-72 w-72 rounded-full bg-cyan-200/35 blur-3xl" />
-        <div className="absolute right-0 top-0 h-80 w-80 rounded-full bg-orange-200/30 blur-3xl" />
+    <main className="relative min-h-screen">
+      {/* Background */}
+      <div className="pointer-events-none fixed inset-0">
+        <div className="absolute left-4 top-24 h-72 w-72 rounded-full bg-violet-500/8 blur-[100px]" />
+        <div className="absolute right-0 top-0 h-80 w-80 rounded-full bg-emerald-500/6 blur-[100px]" />
       </div>
 
-      <div className="app-shell relative space-y-6 md:space-y-8">
-        <header className="surface-card-strong animate-fade-in-up">
-          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+      {/* Top Nav */}
+      <nav className="sticky top-0 z-50 border-b bg-background/70 backdrop-blur-xl">
+        <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6">
+          <div className="flex items-center gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary shadow-glow">
+              <Bot className="h-4 w-4 text-primary-foreground" />
+            </div>
+            <span className="text-sm font-bold tracking-tight">AutoLLM Forge</span>
+            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/40" />
+            <span className="text-sm text-muted-foreground">
+              {compactHeader ? 'Pipeline' : 'Training Workspace'}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 sm:gap-3">
+            <div className="hidden sm:flex items-center gap-2 rounded-lg border bg-card/50 px-3 py-1.5 text-xs font-medium text-muted-foreground">
+              <Sparkles className="h-3.5 w-3.5 text-primary" />
+              {steps[currentStepIndex].label}
+            </div>
+            <button
+              onClick={toggleTheme}
+              className="btn-ghost h-9 w-9 p-0 shrink-0"
+              title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+            >
+              {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+            </button>
+            <button
+              onClick={() => {
+                reset();
+                setCurrentStep('model');
+              }}
+              className="btn-secondary h-9 text-xs"
+            >
+              <RefreshCcw className="h-3.5 w-3.5" />
+              <span className="hidden xs:inline">New Session</span>
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      <div className="mx-auto max-w-7xl px-4 sm:px-6 pb-10 pt-4 sm:pt-6">
+        {/* Pipeline Steps Nav */}
+        <motion.div
+          className="card card-shadow-lg p-4 md:p-6"
+          variants={fadeInUp}
+          initial="hidden"
+          animate="visible"
+        >
+          <div className="flex items-center justify-between gap-4 mb-4">
             <div>
-              <p className="badge-pill mb-3">
-                <Sparkles className="h-3.5 w-3.5" />
-                Fine-Tuning Studio
-              </p>
-              <h1 className="section-title text-slate-900">
-                {compactHeader ? 'Pipeline Workspace' : 'AutoLLM Forge Training Workspace'}
+              <h1 className="text-xl font-bold tracking-tight">
+                {compactHeader ? 'Pipeline Workspace' : 'Training Workspace'}
               </h1>
-              <p className="section-description mt-3 max-w-3xl">
-                Navigate each stage with clear progress, richer context, and faster decisions while keeping full control.
+              <p className="text-sm text-muted-foreground mt-1">
+                Navigate each stage with clear progress and full control.
               </p>
             </div>
-
-            <div className="flex flex-wrap items-center gap-3">
-              <div className="rounded-xl border border-slate-200 bg-white/80 px-4 py-2.5 text-right">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">Current stage</p>
-                <p className="mt-1 text-sm font-semibold text-slate-900">{steps[currentStepIndex].label}</p>
-              </div>
-              <button
-                onClick={() => {
-                  reset();
-                  setCurrentStep('model');
-                }}
-                className="secondary-button"
-              >
-                <RefreshCcw className="h-4 w-4" />
-                New Session
-              </button>
+            <div className="text-right">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+                Progress
+              </p>
+              <p className="text-lg font-bold">{progressPercent}%</p>
             </div>
           </div>
 
-          <div className="mt-6 space-y-4">
-            <div className="h-2 rounded-full bg-slate-200/70">
-              <div
-                className="h-2 rounded-full bg-gradient-to-r from-teal-600 to-cyan-500 transition-all duration-500"
-                style={{ width: `${progressPercent}%` }}
-              />
-            </div>
-
-            <div className="grid gap-3 lg:grid-cols-5">
-              {steps.map((step, index) => {
-                const Icon = step.icon;
-                const active = currentStep === step.id;
-                const available = canNavigateTo(index);
-                const done =
-                  step.id === 'model'
-                    ? completion.model
-                    : step.id === 'dataset'
-                      ? completion.dataset
-                      : step.id === 'hyperparameters'
-                        ? completion.hyperparameters
-                        : step.id === 'training'
-                          ? completion.training
-                          : completion.export;
-
-                return (
-                  <button
-                    key={step.id}
-                    type="button"
-                    disabled={!available}
-                    onClick={() => setCurrentStep(step.id)}
-                    className={`group rounded-2xl border p-4 text-left transition ${
-                      active
-                        ? 'border-teal-400 bg-teal-50 shadow-glow-soft'
-                        : done
-                          ? 'border-teal-200 bg-white/90 hover:border-teal-300'
-                          : 'border-slate-200 bg-white/70 hover:border-slate-300'
-                    } ${!available ? 'cursor-not-allowed opacity-55' : ''}`}
-                  >
-                    <div className="flex items-start justify-between gap-3">
-                      <span
-                        className={`inline-flex h-9 w-9 items-center justify-center rounded-lg ${
-                          active
-                            ? 'bg-teal-700 text-white'
-                            : done
-                              ? 'bg-teal-100 text-teal-700'
-                              : 'bg-slate-100 text-slate-500'
-                        }`}
-                      >
-                        {done && !active ? <Check className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
-                      </span>
-                      <CircleDot
-                        className={`h-4 w-4 ${active ? 'text-teal-600' : done ? 'text-teal-400' : 'text-slate-300'}`}
-                      />
-                    </div>
-
-                    <p className="mt-3 text-sm font-semibold text-slate-900">{step.label}</p>
-                    <p className="mt-1 text-xs leading-relaxed text-slate-600">{step.subtitle}</p>
-                  </button>
-                );
-              })}
-            </div>
+          {/* Progress bar */}
+          <div className="progress-bar mb-5">
+            <div className="progress-bar-fill" style={{ width: `${progressPercent}%` }} />
           </div>
-        </header>
 
-        <section className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_320px]">
-          <div className="surface-card-strong min-h-[680px] animate-fade-in-up" style={{ animationDelay: '80ms' }}>
+          {/* Step buttons */}
+          <div className="flex gap-2 overflow-x-auto pb-2 sm:grid sm:grid-cols-5 sm:overflow-visible sm:pb-0 snap-x snap-mandatory scrollbar-none">
+            {steps.map((step, index) => {
+              const Icon = step.icon;
+              const active = currentStep === step.id;
+              const available = canNavigateTo(index);
+              const done =
+                step.id === 'model'
+                  ? completion.model
+                  : step.id === 'dataset'
+                    ? completion.dataset
+                    : step.id === 'hyperparameters'
+                      ? completion.hyperparameters
+                      : step.id === 'training'
+                        ? completion.training
+                        : completion.export;
+
+              return (
+                <button
+                  key={step.id}
+                  type="button"
+                  disabled={!available}
+                  onClick={() => setCurrentStep(step.id)}
+                  className={`group relative rounded-xl border p-3 text-left transition-all duration-200 min-w-[160px] sm:min-w-0 shrink-0 snap-start ${
+                    active
+                      ? 'border-primary/40 bg-primary/5 shadow-sm'
+                      : done
+                        ? 'border-border bg-card/50 hover:border-primary/20 hover:bg-card'
+                        : 'border-border/60 bg-card/30 hover:border-border'
+                  } ${!available ? 'cursor-not-allowed opacity-40' : ''}`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <span
+                      className={`flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold transition-colors ${
+                        active
+                          ? 'bg-primary text-primary-foreground shadow-glow'
+                          : done
+                            ? 'bg-primary/10 text-primary'
+                            : 'bg-muted text-muted-foreground'
+                      }`}
+                    >
+                      {done && !active ? (
+                        <Check className="h-4 w-4" />
+                      ) : (
+                        <Icon className="h-4 w-4" />
+                      )}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-xs font-semibold">{step.label}</p>
+                  <p className="mt-0.5 text-[11px] text-muted-foreground line-clamp-1">{step.subtitle}</p>
+                </button>
+              );
+            })}
+          </div>
+        </motion.div>
+
+        {/* Main content area */}
+        <motion.section
+          className="mt-6 flex flex-col gap-6 xl:grid xl:grid-cols-[minmax(0,1fr)_300px]"
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+        >
+          <motion.div
+            className="card card-shadow-lg min-h-[600px] p-6 md:p-8"
+            variants={staggerItem}
+          >
             {renderStep()}
-          </div>
+          </motion.div>
 
-          <aside className="space-y-4 animate-fade-in-up" style={{ animationDelay: '140ms' }}>
-            <div className="surface-card">
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Session Snapshot</p>
-              <div className="soft-divider" />
+          {/* Sidebar */}
+          <motion.aside className="space-y-4 w-full" variants={staggerItem}>
+            <div className="card p-4">
+              <p className="label-text">Session Snapshot</p>
+              <div className="divider-subtle my-3" />
               <ul className="space-y-3 text-sm">
                 <li className="flex items-start justify-between gap-3">
-                  <span className="text-slate-500">Model</span>
-                  <span className="max-w-[170px] text-right font-medium text-slate-900">
-                    {modelInfo?.model_id ?? 'Not selected'}
+                  <span className="text-muted-foreground shrink-0">Model</span>
+                  <span className="text-right font-medium truncate max-w-[140px]">
+                    {modelInfo?.model_id ? modelInfo.model_id.split('/').pop() : 'Not selected'}
                   </span>
                 </li>
                 <li className="flex items-start justify-between gap-3">
-                  <span className="text-slate-500">Dataset</span>
-                  <span className="max-w-[170px] text-right font-medium text-slate-900">
+                  <span className="text-muted-foreground shrink-0">Dataset</span>
+                  <span className="text-right font-medium truncate max-w-[140px]">
                     {datasetInfo?.dataset_id ?? 'Not uploaded'}
                   </span>
                 </li>
                 <li className="flex items-start justify-between gap-3">
-                  <span className="text-slate-500">Training job</span>
-                  <span className="max-w-[170px] text-right font-medium text-slate-900">
-                    {trainingJobId ? `${trainingJobId.slice(0, 14)}...` : 'Not started'}
+                  <span className="text-muted-foreground shrink-0">Training</span>
+                  <span className="text-right font-medium truncate max-w-[140px]">
+                    {trainingJobId ? `${trainingJobId.slice(0, 12)}...` : 'Not started'}
                   </span>
                 </li>
                 <li className="flex items-start justify-between gap-3">
-                  <span className="text-slate-500">Status</span>
+                  <span className="text-muted-foreground shrink-0">Status</span>
                   <span
-                    className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+                    className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
                       trainingProgress?.status === 'completed'
-                        ? 'bg-teal-100 text-teal-700'
+                        ? 'badge-emerald'
                         : trainingProgress?.status === 'running'
-                          ? 'bg-orange-100 text-orange-700'
-                          : 'bg-slate-100 text-slate-600'
+                          ? 'badge-amber'
+                          : 'badge'
                     }`}
                   >
                     {trainingProgress?.status ?? 'idle'}
@@ -267,41 +329,41 @@ export default function PipelineWorkspace({ compactHeader = false }: PipelineWor
               </ul>
             </div>
 
-            <div className="surface-tint">
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-teal-800">Resource Planner</p>
-              <div className="soft-divider" />
-              <p className="text-sm leading-relaxed text-slate-700">
+            <div className="card p-4 border-primary/10 bg-primary/[0.02]">
+              <p className="label-text text-primary">Resource Planner</p>
+              <div className="divider-subtle my-3" />
+              <p className="text-sm leading-relaxed text-muted-foreground">
                 {estimatedVram
                   ? `Estimated QLoRA memory requirement for this model: about ${estimatedVram} GB VRAM.`
                   : 'Run model analysis to unlock VRAM estimates and training hardware guidance.'}
               </p>
               {evalMetrics?.perplexity != null && (
-                <p className="mt-3 rounded-xl bg-white/70 px-3 py-2 text-xs font-medium text-slate-700">
+                <p className="mt-3 rounded-lg border bg-card/50 px-3 py-2 text-xs font-medium">
                   Latest perplexity: {evalMetrics.perplexity.toFixed(2)}
                 </p>
               )}
             </div>
 
-            <div className="surface-card">
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">Guidance</p>
-              <div className="soft-divider" />
-              <ul className="space-y-3 text-sm text-slate-600">
+            <div className="card p-4">
+              <p className="label-text">Guidance</p>
+              <div className="divider-subtle my-3" />
+              <ul className="space-y-2.5 text-sm text-muted-foreground">
                 <li className="flex items-start gap-2">
-                  <TerminalSquare className="mt-0.5 h-4 w-4 text-teal-600" />
-                  Analyze model and dataset before tuning to avoid wasted training runs.
+                  <TerminalSquare className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  Analyze model and dataset before tuning.
                 </li>
                 <li className="flex items-start gap-2">
-                  <TerminalSquare className="mt-0.5 h-4 w-4 text-teal-600" />
-                  Keep batch size conservative until you confirm real GPU headroom.
+                  <TerminalSquare className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  Keep batch size conservative.
                 </li>
                 <li className="flex items-start gap-2">
-                  <TerminalSquare className="mt-0.5 h-4 w-4 text-teal-600" />
-                  Export both inference and API templates for quicker deployment handoff.
+                  <TerminalSquare className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  Export both inference and API templates.
                 </li>
               </ul>
             </div>
-          </aside>
-        </section>
+          </motion.aside>
+        </motion.section>
       </div>
     </main>
   );

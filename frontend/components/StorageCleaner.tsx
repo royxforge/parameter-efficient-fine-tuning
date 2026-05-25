@@ -3,17 +3,13 @@
 import { useEffect } from 'react';
 
 /**
- * Component to clear all persisted storage on app mount
- * Ensures fresh state on every page load/reload
+ * Clears persisted storage on app mount for a fresh session.
  */
 export default function StorageCleaner() {
   useEffect(() => {
-    // Clear any previous Zustand persisted state
     if (typeof window !== 'undefined') {
-      // Remove old pipeline storage
       localStorage.removeItem('pipeline-storage');
-      
-      // Clear all items that might have been stored
+
       const keysToRemove: string[] = [];
       for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
@@ -21,12 +17,10 @@ export default function StorageCleaner() {
           keysToRemove.push(key);
         }
       }
-      
-      keysToRemove.forEach(key => localStorage.removeItem(key));
-      
-      console.log('✨ Session storage cleared - Fresh start!');
+
+      keysToRemove.forEach((key) => localStorage.removeItem(key));
     }
   }, []);
 
-  return null; // This component doesn't render anything
+  return null;
 }

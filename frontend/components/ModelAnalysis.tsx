@@ -9,10 +9,12 @@ import {
   Cpu,
   Loader2,
   Search,
-  Sparkles,
+  Database,
+  Layers,
 } from 'lucide-react';
 import { usePipelineStore } from '@/store/pipelineStore';
 import { useModelAnalysis } from '@/hooks/useModelAnalysis';
+import { formatNumber } from '@/lib/utils';
 
 const popularModels = [
   { id: 'meta-llama/Llama-2-7b-hf', name: 'Llama 2 7B', size: '7B', vram: '~7 GB QLoRA' },
@@ -43,18 +45,23 @@ export default function ModelAnalysis() {
 
   return (
     <div className="space-y-8 animate-fade-in-up">
-      <section className="text-center">
-        <span className="badge-pill">Step 1 of 5</span>
-        <h2 className="section-title mt-4">Model Analysis</h2>
-        <p className="section-description mx-auto mt-3 max-w-3xl">
-          Enter a Hugging Face model ID and get architecture details, memory expectations, and compute guidance before training.
+      {/* Header */}
+      <div className="section-header">
+        <div className="badge-primary inline-flex">
+          <Brain className="h-3.5 w-3.5" />
+          Step 1 of 5
+        </div>
+        <h2>Model Analysis</h2>
+        <p>
+          Enter a Hugging Face model ID and get architecture details, memory expectations, and compute guidance.
         </p>
-      </section>
+      </div>
 
-      <section className="surface-card-strong space-y-5">
-        <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-end">
-          <div>
-            <label htmlFor="model-id" className="field-label">
+      {/* Search */}
+      <div className="card p-4 sm:p-5 space-y-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <div className="flex-1 min-w-0">
+            <label htmlFor="model-id" className="label-text">
               Hugging Face model ID
             </label>
             <input
@@ -63,20 +70,17 @@ export default function ModelAnalysis() {
               value={modelId}
               onChange={(event) => setModelId(event.target.value)}
               onKeyDown={(event) => {
-                if (event.key === 'Enter') {
-                  handleAnalyze();
-                }
+                if (event.key === 'Enter') handleAnalyze();
               }}
-              placeholder="Example: meta-llama/Llama-2-7b-hf"
-              className="text-input"
+              placeholder="meta-llama/Llama-2-7b-hf"
+              className="input-field"
               disabled={isLoading}
             />
           </div>
-
           <button
             onClick={handleAnalyze}
             disabled={isLoading || !modelId.trim()}
-            className="primary-button h-11 px-6"
+            className="btn-primary h-10 w-full sm:w-auto"
           >
             {isLoading ? (
               <>
@@ -86,127 +90,151 @@ export default function ModelAnalysis() {
             ) : (
               <>
                 <Search className="h-4 w-4" />
-                Analyze Model
+                Analyze
               </>
             )}
           </button>
         </div>
 
-        <div className="rounded-xl border border-teal-100 bg-teal-50/70 p-4 text-sm text-slate-700">
-          <p className="font-semibold text-teal-800">Tip</p>
+        <div className="rounded-xl border border-primary/10 bg-primary/[0.03] p-4 text-sm text-muted-foreground">
+          <p className="font-semibold text-primary">Tip</p>
           <p className="mt-1">
-            Run analysis first to estimate practical VRAM usage and choose safe defaults before upload and tuning.
+            Run analysis first to estimate practical VRAM usage and choose safe defaults before tuning.
           </p>
         </div>
-      </section>
+      </div>
 
-      <section className="space-y-4">
-        <div className="flex items-center justify-between gap-3">
-          <h3 className="text-lg font-semibold text-slate-900">Popular starting models</h3>
-          <span className="text-xs font-medium uppercase tracking-[0.14em] text-slate-500">One-click fill</span>
+      {/* Popular models */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-semibold">Popular starting models</h3>
+          <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+            Click to select
+          </span>
         </div>
 
-        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-          {popularModels.map((model, index) => (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {popularModels.map((model) => (
             <button
               key={model.id}
               onClick={() => setModelId(model.id)}
               disabled={isLoading}
-              className="group rounded-2xl border border-slate-200 bg-white/80 p-4 text-left transition hover:-translate-y-0.5 hover:border-teal-300 hover:shadow-sm"
-              style={{ animationDelay: `${index * 60}ms` }}
+              className="card-hover p-4 text-left"
             >
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold text-slate-900">{model.name}</p>
-                <span className="rounded-full bg-slate-900 px-2.5 py-1 text-[11px] font-semibold text-teal-300">{model.size}</span>
+              <div className="flex items-center justify-between gap-2">
+                <p className="text-sm font-semibold">{model.name}</p>
+                <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
+                  {model.size}
+                </span>
               </div>
-              <p className="mt-2 text-xs text-slate-600">{model.vram}</p>
-              <p className="mt-3 truncate rounded-lg bg-slate-50 px-2 py-1 text-[11px] font-medium text-slate-500">{model.id}</p>
+              <p className="mt-1.5 text-xs text-muted-foreground">{model.vram}</p>
+              <p className="mt-2 truncate rounded-lg bg-muted/50 px-2 py-1 text-[11px] font-mono text-muted-foreground">
+                {model.id}
+              </p>
             </button>
           ))}
         </div>
-      </section>
+      </div>
 
+      {/* Error */}
       {error && (
-        <section className="rounded-2xl border border-red-200 bg-red-50 p-5">
+        <div className="card border-destructive/20 bg-destructive/[0.03] p-5">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="mt-0.5 h-5 w-5 text-red-500" />
+            <AlertTriangle className="mt-0.5 h-5 w-5 text-destructive" />
             <div>
-              <p className="text-sm font-semibold text-red-700">Model analysis failed</p>
-              <p className="mt-1 text-sm text-red-600">{error}</p>
+              <p className="text-sm font-semibold text-destructive">Analysis failed</p>
+              <p className="mt-1 text-sm text-destructive/80">{error}</p>
             </div>
           </div>
-        </section>
+        </div>
       )}
 
+      {/* Results */}
       {modelInfo && (
-        <section className="surface-card-strong space-y-6 border-teal-200/70 bg-gradient-to-br from-teal-50 to-white">
+        <div className="card card-shadow-lg border-primary/10 p-4 sm:p-6 space-y-6 animate-scale-in">
           <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <p className="badge-pill">
+            <div className="min-w-0 flex-1">
+              <div className="badge-emerald inline-flex">
                 <CheckCircle2 className="h-3.5 w-3.5" />
                 Analysis complete
+              </div>
+              <h3 className="mt-3 text-lg sm:text-xl font-bold break-all">{modelInfo.model_id}</h3>
+              <p className="mt-1 text-sm text-muted-foreground break-all">
+                Architecture: {modelInfo.architecture}
               </p>
-              <h3 className="mt-3 text-2xl font-semibold text-slate-900">{modelInfo.model_id}</h3>
-              <p className="mt-1 text-sm text-slate-600">Architecture: {modelInfo.architecture}</p>
             </div>
-            <div className="rounded-xl bg-slate-900 px-4 py-3 text-right text-teal-300">
-              <p className="text-[11px] uppercase tracking-[0.14em]">Estimated QLoRA VRAM</p>
-              <p className="mt-1 text-xl font-semibold">~{Math.ceil((modelInfo.num_parameters * 0.55) / 1e9)} GB</p>
+            <div className="rounded-xl bg-primary/10 px-4 sm:px-5 py-3 text-right shrink-0">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-primary whitespace-nowrap">
+                Estimated QLoRA VRAM
+              </p>
+              <p className="mt-1 text-xl sm:text-2xl font-bold">~{Math.ceil((modelInfo.num_parameters * 0.55) / 1e9)} GB</p>
             </div>
           </div>
 
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-            <article className="metric-tile">
-              <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Parameters</p>
-              <p className="mt-2 text-2xl font-semibold text-slate-900">{(modelInfo.num_parameters / 1e9).toFixed(1)}B</p>
-            </article>
-            <article className="metric-tile">
-              <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Hidden size</p>
-              <p className="mt-2 text-2xl font-semibold text-slate-900">{modelInfo.hidden_size}</p>
-            </article>
-            <article className="metric-tile">
-              <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Layers</p>
-              <p className="mt-2 text-2xl font-semibold text-slate-900">{modelInfo.num_layers}</p>
-            </article>
-            <article className="metric-tile">
-              <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Attention heads</p>
-              <p className="mt-2 text-2xl font-semibold text-slate-900">{modelInfo.num_attention_heads}</p>
-            </article>
+          {/* Metrics grid */}
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="metric-tile">
+              <p className="label-text flex items-center gap-1.5">
+                <Database className="h-3 w-3" /> Parameters
+              </p>
+              <p className="mt-1.5 text-2xl font-bold">{formatNumber(modelInfo.num_parameters)}</p>
+            </div>
+            <div className="metric-tile">
+              <p className="label-text flex items-center gap-1.5">
+                <Layers className="h-3 w-3" /> Hidden size
+              </p>
+              <p className="mt-1.5 text-2xl font-bold">{modelInfo.hidden_size.toLocaleString()}</p>
+            </div>
+            <div className="metric-tile">
+              <p className="label-text flex items-center gap-1.5">
+                <Layers className="h-3 w-3" /> Layers
+              </p>
+              <p className="mt-1.5 text-2xl font-bold">{modelInfo.num_layers}</p>
+            </div>
+            <div className="metric-tile">
+              <p className="label-text flex items-center gap-1.5">
+                <Brain className="h-3 w-3" /> Attention heads
+              </p>
+              <p className="mt-1.5 text-2xl font-bold">{modelInfo.num_attention_heads}</p>
+            </div>
           </div>
 
+          {/* Compute requirements */}
           {modelInfo.compute_requirements && (
-            <div className="grid gap-3 rounded-2xl border border-slate-200 bg-white/80 p-4 md:grid-cols-3">
+            <div className="grid gap-3 rounded-xl border bg-card/50 p-4 sm:grid-cols-3">
               <div>
-                <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Minimum VRAM</p>
-                <p className="mt-1 text-lg font-semibold text-slate-900">{modelInfo.compute_requirements.min_vram_gb} GB</p>
+                <p className="label-text">Minimum VRAM</p>
+                <p className="mt-1 text-lg font-bold">{modelInfo.compute_requirements.min_vram_gb} GB</p>
               </div>
               <div>
-                <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Recommended VRAM</p>
-                <p className="mt-1 text-lg font-semibold text-slate-900">
+                <p className="label-text">Recommended VRAM</p>
+                <p className="mt-1 text-lg font-bold">
                   {modelInfo.compute_requirements.recommended_vram_gb} GB
                 </p>
               </div>
               <div>
-                <p className="text-xs uppercase tracking-[0.14em] text-slate-500">Max batch size</p>
-                <p className="mt-1 text-lg font-semibold text-slate-900">{modelInfo.compute_requirements.max_batch_size}</p>
+                <p className="label-text">Max batch size</p>
+                <p className="mt-1 text-lg font-bold">{modelInfo.compute_requirements.max_batch_size}</p>
               </div>
             </div>
           )}
 
-          <div className="flex justify-end">
-            <button onClick={handleNext} className="primary-button px-6 py-3">
+          {/* Action */}
+          <div className="flex justify-end pt-2">
+            <button onClick={handleNext} className="btn-primary px-6 py-2.5">
               Continue to Dataset
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>
-        </section>
+        </div>
       )}
 
+      {/* Empty state */}
       {!modelInfo && (
-        <section className="surface-card flex items-center gap-3 text-sm text-slate-600">
-          <Cpu className="h-4 w-4 text-teal-700" />
+        <div className="card p-5 flex items-center gap-3 text-sm text-muted-foreground">
+          <Cpu className="h-4 w-4 text-primary" />
           Analyze a base model to unlock memory planning and smart hyperparameter recommendations.
-        </section>
+        </div>
       )}
     </div>
   );
