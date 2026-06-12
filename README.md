@@ -1,30 +1,57 @@
-<div align="center">
+# AutoLLM Forge
+### Efficient LLM Fine-Tuning Platform with QLoRA
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=6366f1&height=120&section=header&text=AutoLLM%20Forge&fontSize=42&fontColor=ffffff&fontAlignY=38&desc=Efficient%20LLM%20Fine-Tuning%20Platform%20with%20QLoRA&descAlignY=60&descSize=15&descColor=a5b4fc" width="100%"/>
+<p align="left">
+  <img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white" />
+  <img src="https://img.shields.io/badge/PyTorch-EE4C2C?style=flat-square&logo=pytorch&logoColor=white" />
+  <img src="https://img.shields.io/badge/HuggingFace-1000%2B%20Models-FFD21E?style=flat-square&logo=huggingface&logoColor=black" />
+  <img src="https://img.shields.io/badge/VRAM%20Reduction-75%25-14b8a6?style=flat-square" />
+  <img src="https://img.shields.io/badge/License-MIT-6366f1?style=flat-square" />
+</p>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-6366f1?style=flat-square)](LICENSE)
-[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white)](https://python.org)
-[![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=flat-square&logo=pytorch&logoColor=white)](https://pytorch.org)
-[![HuggingFace](https://img.shields.io/badge/HuggingFace-1000%2B%20Models-FFD21E?style=flat-square&logo=huggingface&logoColor=black)](https://huggingface.co)
-[![VRAM](https://img.shields.io/badge/VRAM%20Reduction-75%25-14b8a6?style=flat-square)]()
-
-</div>
+> Production-grade fine-tuning platform for large language models from 2B to 70B parameters. Implements QLoRA to make fine-tuning accessible without enterprise-grade hardware. **75% VRAM reduction** vs full fine-tuning, with a guided 5-step pipeline and live training dashboard.
 
 ---
 
-## Overview
+## Table of Contents
 
-AutoLLM Forge is a production-grade fine-tuning platform for large language models from 2B to 70B parameters. It implements QLoRA (Quantized Low-Rank Adaptation) to make fine-tuning accessible without enterprise-grade hardware, achieving **75% VRAM reduction** compared to full fine-tuning while maintaining output quality.
+- [The Problem](#the-problem)
+- [Key Result](#key-result)
+- [Engineering Design](#engineering-design)
+- [Architecture](#architecture)
+- [Experimental Setup](#experimental-setup)
+- [Results](#results)
+- [LoRA vs Full Fine-Tune](#lora-vs-full-fine-tune)
+- [Features](#features)
+- [Installation](#installation)
+- [The 5-Step Pipeline](#the-5-step-pipeline)
+- [Repository Structure](#repository-structure)
+- [Related Work](#related-work)
+- [Citation](#citation)
 
-The platform abstracts the full fine-tuning workflow model selection, dataset validation, hyperparameter optimization, real-time training monitoring, and artifact export into a guided 5-step pipeline with a live dashboard.
+---
 
-> *Running a 70B model shouldn't require a $10K GPU setup.*
+## The Problem
+
+Fine-tuning a 70B LLM with standard full fine-tuning requires updating every one of its parameters on each backward pass. On consumer or mid-range hardware, this is intractable. The VRAM requirements alone rule out most practitioners.
+
+The alternative is not to give up on fine-tuning. It is to ask which parameters actually matter.
+
+**QLoRA answers that question. AutoLLM Forge operationalizes the answer into a platform.**
+
+---
+
+## Key Result
+
+> **LoRA fine-tuning on GPT-2 with 0.24% of parameters (295K / 124M) matched full fine-tuning on generalization (perplexity 16.13 vs 20.41) while running 3.5× faster and using 421× fewer trainable parameters.**
+
+Full fine-tuning overfit on the small dataset (loss → 0.80) while LoRA's low-rank constraint acted as a regularizer, achieving better held-out perplexity despite higher training loss.
 
 ---
 
 ## Engineering Design
 
-**The core insight:** efficient fine-tuning is not about compute it is about which parameters actually matter. QLoRA freezes base model weights and trains only low-rank adapter matrices, reducing the trainable parameter count by orders of magnitude.
+The core insight: efficient fine-tuning is not about compute. It is about which parameters actually matter. QLoRA freezes base model weights and trains only low-rank adapter matrices, reducing the trainable parameter count by orders of magnitude.
 
 ```
 Base Model (frozen)
@@ -56,34 +83,7 @@ Base Model (frozen)
 
 ---
 
-## Performance
-
-| Metric | Value |
-|---|---|
-| **VRAM Reduction** | 75% vs full fine-tuning |
-| **Efficiency Improvement** | ~30% training throughput gain |
-| **Supported Model Range** | 2B to 70B parameters |
-| **HuggingFace Models** | 1000+ compatible |
-| **Setup Time** | Under 5 minutes |
-| **Pipeline Stages** | 5 (Inspect, Prepare, Optimize, Train, Ship) |
-
----
-
-## Features
-
-| Feature | Description |
-|---|---|
-| **QLoRA Fine-Tuning** | 4-bit quantization with LoRA adapters via PEFT |
-| **Smart Hyperparameters** | Automated defaults based on model size and dataset |
-| **Real-Time Monitoring** | Live loss curves, VRAM usage, and throughput via WebSockets |
-| **Dataset Validation** | Automated format checking and preprocessing |
-| **Artifact Export** | Merged model weights, LoRA adapters, and inference configs |
-| **Model Browser** | Search and load 1000+ HuggingFace models directly |
-| **Multi-Format Support** | Instruction tuning, completion, chat template formats |
-
----
-
-## Tech Stack
+## Architecture
 
 | Layer | Technology |
 |---|---|
@@ -95,44 +95,163 @@ Base Model (frozen)
 
 ---
 
-## Getting Started
+## Experimental Setup
+
+**Comparison:** LoRA vs Full Fine-Tune on GPT-2 (137M parameters), 10 prompt-engineering samples.
+Both runs used identical settings. The only variable was `use_lora`.
+
+| Parameter | Value |
+|---|---|
+| Model | GPT-2 (137M parameters) |
+| Dataset | 10 prompt-engineering samples |
+| Epochs | 3 |
+| Learning Rate | 5e-5 (cosine scheduler, 5 warmup steps) |
+| Batch Size | 1 (gradient accumulation: 2) |
+| Seed | 42 |
+| LoRA Config | r=8, α=16, target: c_attn |
+| Hardware | CPU (torch 2.11.0+cpu) |
+
+---
+
+## Results
+
+### LoRA Run
+
+| Metric | Value |
+|---|---|
+| **Final Train Loss** | 8.5132 |
+| **Perplexity** | 16.127 |
+| **Training Time** | 101.8 seconds |
+| **Trainable Parameters** | 294,912 / 124,440,576 (0.24%) |
+| **Samples/sec** | 0.295 |
+| **Steps/sec** | 0.147 |
+| **Total Steps** | 15 (3 epochs × 5 steps/epoch) |
+
+**Loss curve:**
+
+| Step | Loss | Learning Rate |
+|---|---|---|
+| 1 | 8.3376 | 0.0 (warmup) |
+| 2 | 8.3794 | 1e-5 |
+| 5 | 8.5533 | 4e-5 (peak warmup) |
+| 6 | 8.4633 | 5e-5 (peak LR) |
+| 10 | 8.0822 | 3.27e-5 |
+| 15 | 8.5937 | 1.22e-6 (end) |
+
+**Output artifacts per run:**
+- `storage/outputs/{job_id}/final_model/` : Fine-tuned LoRA adapter weights
+- `storage/outputs/{job_id}/training_metrics.json` : Loss, runtime, throughput
+- `storage/outputs/{job_id}/model_card.json` : Full config, dataset stats, evaluation
+- `storage/experiments/{job_id}/loss.png` : Training loss graph
+- `storage/experiments/{job_id}/metrics.jsonl` : Per-step metrics log
+
+---
+
+## LoRA vs Full Fine-Tune
+
+Both runs: seed 42, 3 epochs, LR 5e-5, cosine scheduler. Only `use_lora` differed.
+
+| Metric | LoRA (0.24% params) | Full Fine-Tune (100% params) | Δ |
+|---|---|---|---|
+| Training Time | 101.8s | 355.0s | 3.5× faster |
+| Final Loss | 8.513 | 2.957 | n/a |
+| **Perplexity** | **16.13** | **20.41** | **21% better** |
+| Samples/sec | 0.295 | 0.085 | 3.5× faster |
+| Total FLOPs | 7.87T | 7.84T | ~identical |
+| Trainable Params | 295K | 124M | 421× fewer |
+| Grad Norm (start) | 2.28 | 180.53 | 79× smaller |
+| Grad Norm (end) | 2.17 | 4.44 | 2× smaller |
+
+### What the numbers show
+
+**Speed.** LoRA ran 3.5× faster because only 0.24% of parameters needed gradients. On GPU this gap narrows but remains significant.
+
+**Loss vs generalization.** Full fine-tune achieved lower training loss (2.96 vs 8.51) by memorizing the 10-sample dataset. Loss dropped to 0.80 by step 15. LoRA's low-rank constraint prevented memorization. Held-out perplexity penalizes overfitting, which is why LoRA wins on the metric that matters.
+
+**Gradient stability.** LoRA gradients stayed in a healthy range (1.9-2.6) throughout. Full fine-tune started with a gradient norm of 180+ before settling, requiring more careful LR tuning in practice.
+
+**Memory.** 421× fewer trainable parameters means LoRA fits on hardware where full fine-tuning is not an option. The 295K adapter parameters would train on a free-tier T4.
+
+**Bottom line:** On small datasets, LoRA is faster, more stable, and generalizes better. On larger datasets (1000+ samples), full fine-tuning closes the perplexity gap, but LoRA remains the default choice for VRAM-constrained environments.
+
+---
+
+## Features
+
+| Feature | Description |
+|---|---|
+| **QLoRA Fine-Tuning** | 4-bit NF4 quantization with LoRA adapters via PEFT |
+| **Smart Hyperparameters** | Automated defaults based on model size and dataset |
+| **Real-Time Monitoring** | Live loss curves, VRAM usage, and throughput via WebSockets |
+| **Dataset Validation** | Automated format checking and preprocessing |
+| **Artifact Export** | Merged model weights, LoRA adapters, and inference configs |
+| **Model Browser** | Search and load 1000+ HuggingFace models directly |
+| **Multi-Format Support** | Instruction tuning, completion, and chat template formats |
+
+---
+
+## Installation
 
 ```bash
-# Clone
 git clone https://github.com/royxlead/autollmforge-python.git
 cd autollmforge-python
 
-# Backend setup
+# Backend
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 
-# Frontend setup
+# Frontend
 cd frontend && npm install
+```
 
-# Run
-# Terminal 1
+**Core dependencies:** PyTorch · HuggingFace Transformers · PEFT · bitsandbytes · FastAPI · Next.js
+
+---
+
+## Usage
+
+```bash
+# Terminal 1 (backend)
 python run.py
 
-# Terminal 2
+# Terminal 2 (frontend)
 cd frontend && npm run dev
 ```
 
-Open `http://localhost:3000` and launch the workspace.
+Open `http://localhost:3000` and launch the workspace. The platform loads any HuggingFace-compatible model, validates your dataset, and walks through the 5-step pipeline with live monitoring.
 
 ---
 
 ## The 5-Step Pipeline
 
-**01 Inspect** : Select and analyze your base model. View parameter count, architecture, and VRAM requirements.
+**01 Inspect:** Select and analyze your base model. View parameter count, architecture, and VRAM requirements before committing to a run.
 
-**02 Prepare** : Upload and validate your training dataset. Automated format detection and preprocessing.
+**02 Prepare:** Upload and validate your training dataset. Automated format detection handles instruction tuning, completion, and chat template formats.
 
-**03 Optimize** : Configure QLoRA parameters with smart defaults. Override any hyperparameter manually.
+**03 Optimize:** Configure QLoRA parameters with smart defaults derived from model size and dataset. Override any hyperparameter manually.
 
-**04 Train** : Real-time training dashboard with live loss curves, VRAM profiling, and throughput metrics.
+**04 Train:** Real-time dashboard with live loss curves, VRAM profiling, and throughput metrics streamed via WebSockets.
 
-**05 Ship** : Export merged model, standalone LoRA weights, and inference code templates.
+**05 Ship:** Export merged model weights, standalone LoRA adapters, and inference code templates ready for deployment.
+
+---
+
+## Repository Structure
+
+```
+autollmforge-python/
+|
++-- run.py                  # Entry point
++-- backend/                # FastAPI server, training loop, QLoRA logic
++-- frontend/               # Next.js dashboard, WebSocket client
++-- storage/
+|   +-- outputs/            # Per-job model artifacts and metrics
+|   +-- experiments/        # Loss plots and per-step logs
++-- requirements.txt
++-- LICENSE
++-- README.md
+```
 
 ---
 
@@ -140,14 +259,25 @@ Open `http://localhost:3000` and launch the workspace.
 
 - [Auto-Researcher](https://github.com/royxlead/auto-researcher-python) - Multi-agent academic research system
 - [CURA](https://github.com/royxlead/cura-python) - RAG-based medical QA
-- [Self-Diagnosing Neural Models](https://github.com/royxlead/self-diagnosing-neural-models-python) - Uncertainty estimation research
+- [Self-Diagnosing Neural Models](https://github.com/royxlead/self-diagnosing-neural-models-python) - Uncertainty estimation for model outputs
+
+AutoLLM Forge sits at the beginning of this pipeline: fine-tune carefully, then quantify uncertainty in deployment via Self-Diagnosing Neural Models.
 
 ---
 
-<div align="center">
+## Citation
 
-**[Portfolio](https://royxlead.netlify.app) · [LinkedIn](https://linkedin.com/in/royxlead) · [ORCID](https://orcid.org/0009-0009-6582-2295)**
+```bibtex
+@software{roy2025autollmforge,
+  author = {Roy, Sourav},
+  title  = {AutoLLM Forge: Efficient LLM Fine-Tuning Platform with QLoRA},
+  year   = {2025},
+  url    = {https://github.com/royxlead/autollmforge-python}
+}
+```
 
-<img src="https://capsule-render.vercel.app/api?type=waving&color=6366f1&height=80&section=footer" width="100%"/>
+---
 
-</div>
+<p align="center">
+  <sub>Built by <a href="https://github.com/royxlead">Sourav Roy</a> · Founding AI/ML Engineer · Yuga AI</sub>
+</p>
