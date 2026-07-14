@@ -1,5 +1,5 @@
-# AutoLLM Forge
-### Efficient LLM Fine-Tuning Platform with QLoRA
+# Parameter Efficient Fine-Tuning
+### A Production-Grade LLM Fine-Tuning Platform with QLoRA
 
 <p align="left">
   <img src="https://img.shields.io/badge/Python-3.10%2B-3776AB?style=flat-square&logo=python&logoColor=white" />
@@ -38,7 +38,7 @@ Fine-tuning a 70B LLM with standard full fine-tuning requires updating every one
 
 The alternative is not to give up on fine-tuning. It is to ask which parameters actually matter.
 
-**QLoRA answers that question. AutoLLM Forge operationalizes the answer into a platform.**
+**QLoRA answers that question. Parameter Efficient Fine-Tuning operationalizes the answer into a platform.**
 
 ---
 
@@ -223,8 +223,8 @@ Both runs: seed 42, 3 epochs, LR 5e-5, cosine scheduler. Only `use_lora` differe
 ## Installation
 
 ```bash
-git clone https://github.com/royxlead/autollmforge-python.git
-cd autollmforge-python
+git clone https://github.com/royxforge/parameter-efficient-fine-tuning.git
+cd parameter-efficient-fine-tuning
 
 # Backend
 python -m venv .venv
@@ -270,7 +270,7 @@ Open `http://localhost:3000` and launch the workspace. The platform loads any Hu
 ## Repository Structure
 
 ```
-autollmforge-python/
+parameter-efficient-fine-tuning/
 |
 +-- run.py                   # Entry point
 +-- backend/                 # FastAPI server, training loop, QLoRA logic
@@ -290,28 +290,27 @@ autollmforge-python/
 
 ## Related Work
 
-- [Auto-Researcher](https://github.com/royxlead/auto-researcher-python) - Multi-agent academic research system
-- [CURA](https://github.com/royxlead/cura-python) - RAG-based medical QA
-- [Self-Diagnosing Neural Models](https://github.com/royxlead/self-diagnosing-neural-models-python) - Uncertainty estimation for model outputs
-- [DriftWatch](https://github.com/royxlead/driftwatch-python) - Production drift monitoring for fine-tuned models
+- [Auto-Researcher](https://github.com/royxforge/auto-researcher-python) - Multi-agent academic research system
+- [Unsupervised Confidence Estimation](https://github.com/royxforge/unsupervised-confidence-estimation) - Uncertainty estimation for model outputs
+- [Production Drift Detection](https://github.com/royxforge/production-drift-detection) - Production drift monitoring for fine-tuned models
 
-AutoLLM Forge sits at the beginning of this pipeline: fine-tune carefully with QLoRA, then quantify uncertainty in deployment via Self-Diagnosing Neural Models and monitor for distribution shift via DriftWatch.
+Parameter Efficient Fine-Tuning sits at the beginning of this pipeline: fine-tune carefully with QLoRA, then quantify uncertainty in deployment via Self-Diagnosing Neural Models and monitor for distribution shift via Production Drift Detection.
 
 ---
 
 ## Citation
 
 ```bibtex
-@software{roy2025autollmforge,
+@software{roy2025parameter-efficient-fine-tuning,
   author = {Roy, Sourav},
-  title  = {AutoLLM Forge: Efficient LLM Fine-Tuning Platform with QLoRA},
+  title  = {Parameter Efficient Fine-Tuning: Efficient LLM Fine-Tuning Platform with QLoRA},
   year   = {2025},
-  url    = {https://github.com/royxlead/autollmforge-python}
+  url    = {https://github.com/royxforge/parameter-efficient-fine-tuning}
 }
 ```
 
 ---
 
 <p align="center">
-  <sub>Built by <a href="https://github.com/royxlead">Sourav Roy</a> · Founding AI/ML Engineer · Yuga AI</sub>
+  <sub>Built by <a href="https://github.com/royxforge">Sourav Roy</a> · Artificial Intelligence Engineer · Accure Inc.</sub>
 </p>

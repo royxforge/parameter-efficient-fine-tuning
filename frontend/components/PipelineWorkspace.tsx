@@ -155,7 +155,7 @@ export default function PipelineWorkspace({ compactHeader = false }: PipelineWor
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary shadow-glow">
               <Bot className="h-4 w-4 text-primary-foreground" />
             </div>
-            <span className="text-sm font-bold tracking-tight">AutoLLM Forge</span>
+            <span className="text-sm font-bold tracking-tight">Parameter Efficient Fine-Tuning</span>
             <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/40" />
             <span className="text-sm text-muted-foreground">
               {compactHeader ? 'Pipeline' : 'Training Workspace'}

@@ -11,7 +11,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'AutoLLM Forge | Fine-Tuning Studio',
+  title: 'Parameter Efficient Fine-Tuning | Fine-Tuning Studio',
   description:
     'Modern fine-tuning workspace for building specialized language models with guided QLoRA workflows.',
   keywords: ['LLM', 'fine-tuning', 'QLoRA', 'machine learning', 'model training'],

@@ -104,7 +104,7 @@ export default function LandingExperience({ onStart }: LandingExperienceProps) {
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary shadow-glow">
               <Bot className="h-5 w-5 text-primary-foreground" />
             </div>
-            <span className="text-lg font-bold tracking-tight">AutoLLM Forge</span>
+            <span className="text-lg font-bold tracking-tight">Parameter Efficient Fine-Tuning</span>
           </div>
           <div className="flex items-center gap-4">
             <button
@@ -142,7 +142,7 @@ export default function LandingExperience({ onStart }: LandingExperienceProps) {
           <motion.div className="space-y-8" variants={staggerItem}>
             <div className="badge-primary inline-flex">
               <Sparkles className="h-3.5 w-3.5" />
-              AutoLLM Forge Studio
+              Parameter Efficient Fine-Tuning Studio
             </div>
 
             <h1 className="max-w-3xl text-3xl sm:text-4xl font-bold leading-tight tracking-tight md:text-5xl lg:text-6xl">
@@ -230,7 +230,7 @@ export default function LandingExperience({ onStart }: LandingExperienceProps) {
               whileInView="visible"
               viewport={{ once: true }}
             >
-              Why AutoLLM Forge
+              Why Parameter Efficient Fine-Tuning
             </motion.div>
             <h2 className="text-3xl font-bold tracking-tight md:text-4xl">
               Everything you need for fine-tuning
@@ -311,7 +311,7 @@ export default function LandingExperience({ onStart }: LandingExperienceProps) {
             <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
                 <Bot className="h-4 w-4" />
-                <span>AutoLLM Forge v1.0</span>
+                <span>Parameter Efficient Fine-Tuning v1.0</span>
               </div>
               <p className="text-sm text-muted-foreground">
                 Build specialized models with confidence.
