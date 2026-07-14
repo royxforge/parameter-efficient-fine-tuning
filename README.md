@@ -290,7 +290,7 @@ parameter-efficient-fine-tuning/
 
 ## Related Work
 
-- [Auto-Researcher](https://github.com/royxforge/auto-researcher-python) - Multi-agent academic research system
+- [Multi Agent Research System](https://github.com/royxforge/multi-agent-research-system) - Multi-agent academic research system
 - [Unsupervised Confidence Estimation](https://github.com/royxforge/unsupervised-confidence-estimation) - Uncertainty estimation for model outputs
 - [Production Drift Detection](https://github.com/royxforge/production-drift-detection) - Production drift monitoring for fine-tuned models
 
