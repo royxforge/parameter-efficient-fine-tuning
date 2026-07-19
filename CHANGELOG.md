@@ -15,6 +15,14 @@ The format follows the principles of [Keep a Changelog](https://keepachangelog.c
 
 ---
 
+## [0.6.0] - 2026-07-20
+
+### Added
+
+- **Community health files**: Added `CODE_OF_CONDUCT.md` (Contributor Covenant v2.1), `CONTRIBUTING.md` (contribution guidelines), `SECURITY.md` (vulnerability reporting policy), and `CITATION.cff` (citation metadata). These files establish project governance, community participation guidelines, and academic attribution framework.
+
+---
+
 ## [0.5.0] - 2026-07-14
 
 ### Changed

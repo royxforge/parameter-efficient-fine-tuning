@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use this software in your research, please cite it as below."
+authors:
+  - family-names: Roy
+    given-names: Sourav
+    email: royxforge@proton.me
+    orcid: ""
+title: "Parameter Efficient Fine-Tuning: A Production-Grade LLM Fine-Tuning Platform with QLoRA"
+version: 0.6.0
+date-released: 2026-07-20
+url: "https://github.com/royxforge/parameter-efficient-fine-tuning"
+repository-code: "https://github.com/royxforge/parameter-efficient-fine-tuning"
+license: MIT
+keywords:
+  - QLoRA
+  - parameter-efficient fine-tuning
+  - LLM
+  - 4-bit quantization
+  - LoRA
+  - HuggingFace
