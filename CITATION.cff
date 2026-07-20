@@ -3,7 +3,7 @@ message: "If you use this software in your research, please cite it as below."
 authors:
   - family-names: Roy
     given-names: Sourav
-    email: royxforge@proton.me
+    email: royxforge@gmail.com
     orcid: ""
 title: "Parameter Efficient Fine-Tuning: A Production-Grade LLM Fine-Tuning Platform with QLoRA"
 version: 0.6.0
