@@ -13,6 +13,7 @@ from typing import List
 import json
 import zipfile
 import io
+from datetime import datetime
 from models.schemas import (
     ModelAnalyzeRequest, ModelInfo,
     DatasetUploadRequest, DatasetInfo,
@@ -87,7 +88,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="LLM Fine-Tuning Pipeline API",
     description="Production-ready API for automated LLM fine-tuning",
-    version="1.0.0",
+    version="0.7.0",
     lifespan=lifespan
 )
 
@@ -103,7 +104,7 @@ app.add_middleware(
 async def root():
     return {
         "message": "LLM Fine-Tuning Pipeline API",
-        "version": "1.0.0",
+        "version": "0.7.0",
         "docs": "/docs",
         "status": "operational"
     }
@@ -187,10 +188,42 @@ async def upload_dataset(
             return dataset_info
             
         elif dataset_id:
-            raise HTTPException(
-                status_code=501,
-                detail="Hugging Face dataset loading not yet implemented"
-            )
+            # Load a dataset from Hugging Face Hub by name
+            try:
+                from datasets import load_dataset
+                logger.info(f"Loading HuggingFace dataset: {dataset_id}")
+
+                hf_dataset = load_dataset(dataset_id, split="train", trust_remote_code=True)
+
+                # Save a local copy for validation
+                local_path = Path(settings.datasets_dir) / f"{dataset_id.replace('/', '_')}.jsonl"
+                local_path.parent.mkdir(parents=True, exist_ok=True)
+
+                # Convert to JSONL
+                with open(local_path, 'w', encoding='utf-8') as f:
+                    for example in hf_dataset:
+                        f.write(json.dumps({k: str(v) for k, v in example.items()}) + '\n')
+
+                logger.info(f"Saved HF dataset to {local_path} ({len(hf_dataset)} samples)")
+
+                dataset_info = await dataset_processor.validate_dataset(
+                    str(local_path),
+                    format="jsonl",
+                    dataset_id=dataset_id
+                )
+                return dataset_info
+
+            except ImportError:
+                raise HTTPException(
+                    status_code=400,
+                    detail="HuggingFace datasets library not installed. Run: pip install datasets"
+                )
+            except Exception as e:
+                logger.error(f"HF dataset loading failed: {e}")
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Failed to load HuggingFace dataset: {str(e)}"
+                )
         else:
             raise HTTPException(
                 status_code=400,
@@ -205,8 +238,46 @@ async def upload_dataset(
 @app.post("/api/validate-dataset", response_model=DatasetInfo)
 async def validate_dataset(request: DatasetUploadRequest):
     try:
-        raise HTTPException(status_code=501, detail="Not yet implemented")
+        dataset_id = request.dataset_id
+        fmt = request.format or "json"
+
+        if not dataset_id:
+            # Try to find the most recently uploaded dataset
+            datasets_dir = Path(settings.datasets_dir)
+            if not datasets_dir.exists() or not any(datasets_dir.iterdir()):
+                raise HTTPException(
+                    status_code=400,
+                    detail="No dataset_id provided and no datasets found in storage. Upload a file first via /api/upload-dataset."
+                )
+            # Pick the first JSON/JSONL file found
+            candidates = sorted(datasets_dir.glob("*.json")) + sorted(datasets_dir.glob("*.jsonl")) + sorted(datasets_dir.glob("*.csv"))
+            if not candidates:
+                raise HTTPException(
+                    status_code=400,
+                    detail="No dataset files found in storage. Upload a file first via /api/upload-dataset."
+                )
+            dataset_id = candidates[0].name
+
+        # Resolve full path
+        dataset_path = Path(settings.datasets_dir) / dataset_id
+        if not dataset_path.exists():
+            raise HTTPException(
+                status_code=404,
+                detail=f"Dataset '{dataset_id}' not found in {settings.datasets_dir}"
+            )
+
+        logger.info(f"Validating dataset: {dataset_path} (format: {fmt})")
+        dataset_info = await dataset_processor.validate_dataset(
+            str(dataset_path),
+            format=fmt,
+            dataset_id=dataset_id
+        )
+        return dataset_info
+
+    except HTTPException:
+        raise
     except Exception as e:
+        logger.error(f"Dataset validation failed: {e}")
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.post("/api/recommend-hyperparameters", response_model=HyperparameterRecommendation)
@@ -680,20 +751,43 @@ async def run_evaluation(job_id: str):
         
         eval_service = EvalService()
         
-        # Run evaluation
-        metrics = await eval_service.evaluate_model(str(model_path))
-        
-        # Generate model card
+        # Locate the dataset used for training
         config_file = Path(settings.outputs_dir) / job_id / "config.json"
         config = {}
+        dataset_path = ""
         if config_file.exists():
             with open(config_file, 'r') as f:
                 config = json.load(f)
+            dataset_id = config.get("dataset_id", "")
+            dataset_path = str(Path(settings.datasets_dir) / dataset_id)
+            if not Path(dataset_path).exists():
+                dataset_path = dataset_id  # fall back to ID
+
+        # Run evaluation
+        metrics = await eval_service.evaluate_model(
+            model_path=str(model_path),
+            dataset_path=dataset_path or str(model_path),
+            config=config,
+            split="test"
+        )
         
-        model_card = eval_service.generate_model_card(
-            model_id=config.get("model_id", "unknown"),
-            training_config=config,
-            eval_metrics=metrics
+        # Generate model card
+        model_card = await eval_service.generate_model_card(
+            job_id=job_id,
+            training_args=config,
+            dataset_stats={"path": dataset_path, "samples": metrics.get("eval_samples", 0)},
+            eval_metrics=metrics,
+            ablations={
+                "use_lora": config.get("use_lora", True),
+                "qlora": config.get("qlora", True),
+                "use_gradient_checkpointing": config.get("gradient_checkpointing", True),
+                "use_double_quant": config.get("bnb_4bit_use_double_quant", True),
+                "use_paged_optimizers": config.get("use_paged_optimizers", True),
+            },
+            environment={
+                "gpu_available": False,
+                "pytorch_version": "2.x",
+            }
         )
         
         # Save results

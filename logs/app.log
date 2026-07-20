@@ -1,0 +1,106 @@
+2026-07-20 17:01:46 | INFO     | utils.logger:setup_logger:34 - Logger initialized - Level: INFO, File: logs\app.log
+2026-07-20 17:01:51 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmpt96qctss.json
+2026-07-20 17:01:51 | INFO     | services.dataset_processor:validate_dataset:67 - Dataset validated: 5 samples, avg 4 tokens
+2026-07-20 17:01:51 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmpxvm1z3o8.jsonl
+2026-07-20 17:01:51 | INFO     | services.dataset_processor:validate_dataset:67 - Dataset validated: 2 samples, avg 4 tokens
+2026-07-20 17:01:51 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmpym9mih5q.json
+2026-07-20 17:01:51 | INFO     | services.dataset_processor:validate_dataset:67 - Dataset validated: 2 samples, avg 6 tokens
+2026-07-20 17:01:51 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmpd5mbk2b8.json
+2026-07-20 17:01:51 | INFO     | services.dataset_processor:validate_dataset:67 - Dataset validated: 5 samples, avg 4 tokens
+2026-07-20 17:01:51 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmp1hkw5mzd.json
+2026-07-20 17:01:51 | INFO     | services.dataset_processor:validate_dataset:67 - Dataset validated: 5 samples, avg 4 tokens
+2026-07-20 17:01:51 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmpk8saerxx.txt
+2026-07-20 17:01:51 | ERROR    | services.dataset_processor:validate_dataset:71 - Dataset validation failed: Unsupported format: xml
+2026-07-20 17:01:51 | INFO     | services.dataset_processor:create_train_val_split:222 - Split dataset: 4 train, 1 validation
+2026-07-20 17:01:51 | INFO     | services.dataset_processor:save_dataset:243 - Dataset saved to storage\datasets\test_roundtrip.json
+2026-07-20 17:10:50 | INFO     | utils.logger:setup_logger:34 - Logger initialized - Level: INFO, File: logs\app.log
+2026-07-20 17:10:53 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmph7xo5wvh.json
+2026-07-20 17:10:53 | INFO     | services.dataset_processor:validate_dataset:67 - Dataset validated: 5 samples, avg 4 tokens
+2026-07-20 17:10:53 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmp7t6dxrez.jsonl
+2026-07-20 17:10:53 | INFO     | services.dataset_processor:validate_dataset:67 - Dataset validated: 2 samples, avg 4 tokens
+2026-07-20 17:10:53 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmp_prqtr2_.json
+2026-07-20 17:10:53 | INFO     | services.dataset_processor:validate_dataset:67 - Dataset validated: 2 samples, avg 6 tokens
+2026-07-20 17:10:54 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmpfto0zmdx.json
+2026-07-20 17:10:54 | INFO     | services.dataset_processor:validate_dataset:67 - Dataset validated: 500 samples, avg 1 tokens
+2026-07-20 17:10:54 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmpcr94q4nv.json
+2026-07-20 17:10:54 | INFO     | services.dataset_processor:validate_dataset:67 - Dataset validated: 5 samples, avg 4 tokens
+2026-07-20 17:10:54 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmpml8c6s6t.txt
+2026-07-20 17:10:54 | ERROR    | services.dataset_processor:validate_dataset:71 - Dataset validation failed: Unsupported format: xml
+2026-07-20 17:10:54 | INFO     | services.dataset_processor:create_train_val_split:222 - Split dataset: 4 train, 1 validation
+2026-07-20 17:10:54 | INFO     | services.dataset_processor:save_dataset:243 - Dataset saved to storage\datasets\test_roundtrip.json
+2026-07-20 17:11:46 | INFO     | utils.logger:setup_logger:34 - Logger initialized - Level: INFO, File: logs\app.log
+2026-07-20 17:11:50 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmph4hfxb4q.json
+2026-07-20 17:11:50 | INFO     | services.dataset_processor:validate_dataset:67 - Dataset validated: 5 samples, avg 4 tokens
+2026-07-20 17:11:50 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmpdlpm3d4f.jsonl
+2026-07-20 17:11:50 | INFO     | services.dataset_processor:validate_dataset:67 - Dataset validated: 2 samples, avg 4 tokens
+2026-07-20 17:11:50 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmp6xcruvn_.json
+2026-07-20 17:11:50 | INFO     | services.dataset_processor:validate_dataset:67 - Dataset validated: 2 samples, avg 6 tokens
+2026-07-20 17:11:50 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmpob99w55a.json
+2026-07-20 17:11:50 | INFO     | services.dataset_processor:validate_dataset:67 - Dataset validated: 500 samples, avg 1 tokens
+2026-07-20 17:11:50 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmptb2dimtt.json
+2026-07-20 17:11:50 | INFO     | services.dataset_processor:validate_dataset:67 - Dataset validated: 5 samples, avg 4 tokens
+2026-07-20 17:11:50 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmpso34hppa.txt
+2026-07-20 17:11:50 | ERROR    | services.dataset_processor:validate_dataset:71 - Dataset validation failed: Unsupported format: xml
+2026-07-20 17:11:50 | INFO     | services.dataset_processor:create_train_val_split:222 - Split dataset: 4 train, 1 validation
+2026-07-20 17:11:50 | INFO     | services.dataset_processor:save_dataset:243 - Dataset saved to storage\datasets\test_roundtrip.json
+2026-07-20 17:15:29 | INFO     | utils.logger:setup_logger:34 - Logger initialized - Level: INFO, File: logs\app.log
+2026-07-20 17:15:32 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmpe30pk9qw.json
+2026-07-20 17:15:32 | INFO     | services.dataset_processor:validate_dataset:67 - Dataset validated: 5 samples, avg 4 tokens
+2026-07-20 17:15:32 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmpllbg61b_.jsonl
+2026-07-20 17:15:32 | INFO     | services.dataset_processor:validate_dataset:67 - Dataset validated: 2 samples, avg 4 tokens
+2026-07-20 17:15:32 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmp7g5c6say.json
+2026-07-20 17:15:32 | INFO     | services.dataset_processor:validate_dataset:67 - Dataset validated: 2 samples, avg 6 tokens
+2026-07-20 17:15:32 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmpt2vmnntr.json
+2026-07-20 17:15:32 | INFO     | services.dataset_processor:validate_dataset:67 - Dataset validated: 500 samples, avg 1 tokens
+2026-07-20 17:15:32 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmpbdu1e3tx.json
+2026-07-20 17:15:32 | INFO     | services.dataset_processor:validate_dataset:67 - Dataset validated: 5 samples, avg 4 tokens
+2026-07-20 17:15:32 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmpttn7a97m.txt
+2026-07-20 17:15:32 | ERROR    | services.dataset_processor:validate_dataset:71 - Dataset validation failed: Unsupported format: xml
+2026-07-20 17:15:32 | INFO     | services.dataset_processor:create_train_val_split:222 - Split dataset: 4 train, 1 validation
+2026-07-20 17:15:32 | INFO     | services.dataset_processor:save_dataset:243 - Dataset saved to storage\datasets\test_roundtrip.json
+2026-07-20 17:16:20 | INFO     | utils.logger:setup_logger:34 - Logger initialized - Level: INFO, File: logs\app.log
+2026-07-20 17:16:23 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmpodhywk03.json
+2026-07-20 17:16:23 | INFO     | services.dataset_processor:validate_dataset:67 - Dataset validated: 5 samples, avg 4 tokens
+2026-07-20 17:16:23 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmprukfqra_.jsonl
+2026-07-20 17:16:23 | INFO     | services.dataset_processor:validate_dataset:67 - Dataset validated: 2 samples, avg 4 tokens
+2026-07-20 17:16:23 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmpyr2lfvws.json
+2026-07-20 17:16:23 | INFO     | services.dataset_processor:validate_dataset:67 - Dataset validated: 2 samples, avg 6 tokens
+2026-07-20 17:16:23 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmpe3eyjpfz.json
+2026-07-20 17:16:23 | INFO     | services.dataset_processor:validate_dataset:67 - Dataset validated: 500 samples, avg 1 tokens
+2026-07-20 17:16:23 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmpuqnjnm93.json
+2026-07-20 17:16:23 | INFO     | services.dataset_processor:validate_dataset:67 - Dataset validated: 5 samples, avg 4 tokens
+2026-07-20 17:16:23 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmpyqsvar5j.txt
+2026-07-20 17:16:23 | ERROR    | services.dataset_processor:validate_dataset:71 - Dataset validation failed: Unsupported format: xml
+2026-07-20 17:16:23 | INFO     | services.dataset_processor:create_train_val_split:222 - Split dataset: 4 train, 1 validation
+2026-07-20 17:16:23 | INFO     | services.dataset_processor:save_dataset:243 - Dataset saved to storage\datasets\test_roundtrip.json
+2026-07-20 17:19:53 | INFO     | utils.logger:setup_logger:34 - Logger initialized - Level: INFO, File: logs\app.log
+2026-07-20 17:20:01 | INFO     | utils.logger:setup_logger:34 - Logger initialized - Level: INFO, File: logs\app.log
+2026-07-20 17:20:02 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmpsk0t9zm7.json
+2026-07-20 17:20:02 | INFO     | services.dataset_processor:validate_dataset:67 - Dataset validated: 5 samples, avg 4 tokens
+2026-07-20 17:20:02 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmpq3ffnewm.jsonl
+2026-07-20 17:20:02 | INFO     | services.dataset_processor:validate_dataset:67 - Dataset validated: 2 samples, avg 4 tokens
+2026-07-20 17:20:02 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmpssli2pbm.json
+2026-07-20 17:20:02 | INFO     | services.dataset_processor:validate_dataset:67 - Dataset validated: 2 samples, avg 6 tokens
+2026-07-20 17:20:02 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmpxodjlv01.json
+2026-07-20 17:20:02 | INFO     | services.dataset_processor:validate_dataset:67 - Dataset validated: 500 samples, avg 1 tokens
+2026-07-20 17:20:02 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmpizea54a5.json
+2026-07-20 17:20:02 | INFO     | services.dataset_processor:validate_dataset:67 - Dataset validated: 5 samples, avg 4 tokens
+2026-07-20 17:20:02 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmp6jxija8s.txt
+2026-07-20 17:20:02 | ERROR    | services.dataset_processor:validate_dataset:71 - Dataset validation failed: Unsupported format: xml
+2026-07-20 17:20:02 | INFO     | services.dataset_processor:create_train_val_split:222 - Split dataset: 4 train, 1 validation
+2026-07-20 17:20:02 | INFO     | services.dataset_processor:save_dataset:243 - Dataset saved to storage\datasets\test_roundtrip.json
+2026-07-20 17:21:27 | INFO     | utils.logger:setup_logger:34 - Logger initialized - Level: INFO, File: logs\app.log
+2026-07-20 17:21:28 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmpcjh_tchb.json
+2026-07-20 17:21:28 | INFO     | services.dataset_processor:validate_dataset:67 - Dataset validated: 5 samples, avg 4 tokens
+2026-07-20 17:21:28 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmpodfiwuga.jsonl
+2026-07-20 17:21:28 | INFO     | services.dataset_processor:validate_dataset:67 - Dataset validated: 2 samples, avg 4 tokens
+2026-07-20 17:21:28 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmp2qzeo61t.json
+2026-07-20 17:21:28 | INFO     | services.dataset_processor:validate_dataset:67 - Dataset validated: 2 samples, avg 6 tokens
+2026-07-20 17:21:28 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmpnual1lpz.json
+2026-07-20 17:21:28 | INFO     | services.dataset_processor:validate_dataset:67 - Dataset validated: 500 samples, avg 1 tokens
+2026-07-20 17:21:28 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmpp7cd68of.json
+2026-07-20 17:21:28 | INFO     | services.dataset_processor:validate_dataset:67 - Dataset validated: 5 samples, avg 4 tokens
+2026-07-20 17:21:28 | INFO     | services.dataset_processor:validate_dataset:25 - Validating dataset: C:\Users\royxl\AppData\Local\Temp\tmpbi9q2a9j.txt
+2026-07-20 17:21:28 | ERROR    | services.dataset_processor:validate_dataset:71 - Dataset validation failed: Unsupported format: xml
+2026-07-20 17:21:28 | INFO     | services.dataset_processor:create_train_val_split:222 - Split dataset: 4 train, 1 validation
+2026-07-20 17:21:28 | INFO     | services.dataset_processor:save_dataset:243 - Dataset saved to storage\datasets\test_roundtrip.json

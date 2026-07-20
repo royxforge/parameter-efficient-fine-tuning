@@ -6,9 +6,32 @@ The format follows the principles of [Keep a Changelog](https://keepachangelog.c
 
 ---
 
-## [Unreleased]
+## [0.7.0] - 2026-07-20
 
 ### Added
+
+- **Realistic compute estimation**: `ComputeEstimator._estimate_architecture()` replaces the broken `sqrt(num_params / 12)` formula with a lookup table based on real LLM architectures (GPT, LLaMA, OPT, Pythia), providing accurate `hidden_size` and `num_layers` values for parameter counts from 100M to 100B+.
+  - Gradient checkpointing factor adjusted from 0.1 (unrealistic 90% reduction) to 0.5 (realistic 50% reduction).
+  - Added KV-cache memory estimation for training workloads.
+  - Added 0.5 GB fixed CUDA context overhead.
+  - Overhead multiplier increased from 10% to 15% for more realistic memory accounting.
+  - The `test_recommend_batch_size` pre-existing test failure is now resolved — `recommend_batch_size()` correctly differentiates between 10 GB and 24 GB VRAM tiers for 7B-class models.
+
+- **API endpoint fixes**: Three previously stubbed endpoints now fully functional:
+  - `/api/validate-dataset`: Validates already-uploaded datasets from storage directory with automatic file discovery when no `dataset_id` is provided.
+  - `/api/upload-dataset` with `dataset_id` parameter: Loads datasets directly from HuggingFace Hub by name, saves as JSONL, and validates.
+  - `/api/experiment/{job_id}/evaluate`: Fixed signature mismatch — now correctly passes all required arguments (`model_path`, `dataset_path`, `config`, `split`) to `EvalService.evaluate_model()` and the correct 7-parameter form to `generate_model_card()`.
+  - `from datetime import datetime` moved to top of file for PEP 8 compliance.
+
+- **Expanded test suite**: Added 28 new unit tests across two test modules:
+  - `tests/test_dataset_processor.py`: 11 tests covering JSON, JSONL, and instruction-format dataset validation, train/val splitting, token statistics, file size reporting, format error handling, preprocessing, and save/load roundtrip.
+  - `tests/test_schemas.py`: 17 tests covering all Pydantic schema enums, default values, custom configurations, and validation for ModelInfo, DatasetInfo, TrainingConfig, LoRAConfig, JobResponse, TrainingProgress, and more.
+
+### Fixed
+
+- **`test_recommend_batch_size`**: Pre-existing test failure resolved — the batch size recommendation now correctly returns different values for 10 GB vs 24 GB VRAM tiers with a 7B model.
+
+### Changed
 
 - Storage cleaner component for managing disk utilization across experimental artifacts.
 - Environment variable file (`env.local`) for frontend deployment configuration.

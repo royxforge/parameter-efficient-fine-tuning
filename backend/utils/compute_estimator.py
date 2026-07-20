@@ -54,6 +54,32 @@ class ComputeEstimator:
         return memory_gb
     
     @staticmethod
+    def _estimate_architecture(num_params: int) -> tuple[int, int]:
+        """Estimate hidden_size and num_layers from parameter count.
+
+        Uses a realistic lookup table based on known transformer LM
+        architectures (GPT, LLaMA, OPT, Pythia model families).
+        """
+        if num_params < 200_000_000:
+            return 768, 12      # e.g. GPT-2 Small
+        elif num_params < 500_000_000:
+            return 1024, 24     # e.g. GPT-2 Medium
+        elif num_params < 1_500_000_000:
+            return 2048, 24     # e.g. GPT-2 Large / Pythia-1B
+        elif num_params < 4_000_000_000:
+            return 3072, 28     # e.g. Phi-3 / StableLM-3B
+        elif num_params < 8_000_000_000:
+            return 4096, 32     # e.g. Llama-2-7B, Mistral-7B
+        elif num_params < 15_000_000_000:
+            return 5120, 40     # e.g. Llama-2-13B
+        elif num_params < 35_000_000_000:
+            return 6656, 48     # e.g. Mixtral-8x7B, Llama-3-34B
+        elif num_params < 80_000_000_000:
+            return 8192, 80     # e.g. Llama-2-70B
+        else:
+            return 12288, 96    # 100B+ frontier models
+
+    @staticmethod
     def estimate_training_memory(
         num_params: int,
         batch_size: int,
@@ -99,23 +125,36 @@ class ComputeEstimator:
         
         gradient_memory = trainable_params * adapter_bytes_per_param / (1024 ** 3)
         
-        hidden_size = math.sqrt(num_params / 12)
-        num_layers = max(12, int(num_params / (hidden_size ** 2) / 12))
+        # Realistic architecture estimation
+        hidden_size, num_layers = ComputeEstimator._estimate_architecture(num_params)
         
+        # Activation memory: hidden * seq_len * batch * layers * 2 bytes
         activation_memory = (hidden_size * seq_length * batch_size * num_layers * 2) / (1024 ** 3)
         
         if gradient_checkpointing:
-            activation_memory *= 0.1
+            # Realistic: checkpointing reduces activations by ~50%, not 90%
+            activation_memory *= 0.5
+        else:
+            activation_memory *= ComputeEstimator.ACTIVATION_MEMORY_FACTOR
         
-        overhead_memory = (model_memory + optimizer_memory + gradient_memory + activation_memory) * 0.1
+        # Add KV-cache memory (autoregressive models need to cache keys/values)
+        kv_cache_memory = (hidden_size * seq_length * batch_size * num_layers * 2 * 2) / (1024 ** 3)
         
-        total_memory = model_memory + optimizer_memory + gradient_memory + activation_memory + overhead_memory
+        # Fixed CUDA overhead (framework context, fragmentations, etc.)
+        cuda_overhead_gb = 0.5
+        
+        # Overhead: realistic 15% for miscellaneous allocations
+        subtotal = model_memory + optimizer_memory + gradient_memory + activation_memory + kv_cache_memory
+        overhead_memory = subtotal * 0.15
+        
+        total_memory = subtotal + overhead_memory + cuda_overhead_gb
         
         return {
             "model_memory_gb": round(model_memory, 2),
             "optimizer_memory_gb": round(optimizer_memory, 2),
             "gradient_memory_gb": round(gradient_memory, 2),
             "activation_memory_gb": round(activation_memory, 2),
+            "kv_cache_memory_gb": round(kv_cache_memory, 2),
             "overhead_memory_gb": round(overhead_memory, 2),
             "total_memory_gb": round(total_memory, 2),
             "quantization": quantization or "none"
