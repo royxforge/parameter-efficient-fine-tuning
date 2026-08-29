@@ -38,10 +38,6 @@ tqdm>=4.66.0
 httpx>=0.26.0
 aiofiles>=23.2.0
 
-# Job Queue (for background tasks)
-celery>=5.3.0
-redis>=5.0.0
-
 # Hugging Face
 huggingface-hub>=0.20.0
 

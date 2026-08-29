@@ -22,9 +22,6 @@ class Settings(BaseSettings):
     hf_token: str | None = None
     hf_cache_dir: str = "./cache/huggingface"
     
-    # Redis
-    redis_url: str = "redis://localhost:6379/0"
-    
     # Storage Paths
     models_dir: str = "./storage/models"
     datasets_dir: str = "./storage/datasets"

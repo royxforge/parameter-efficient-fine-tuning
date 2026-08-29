@@ -58,7 +58,7 @@ export default function ModelAnalysis() {
       </div>
 
       {/* Search */}
-      <div className="card p-4 sm:p-5 space-y-4">
+      <div className="card p-4 sm:p-5 space-y-4 bg-white dark:bg-gray-900 border-orange-100 dark:border-orange-800/30">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
           <div className="flex-1 min-w-0">
             <label htmlFor="model-id" className="label-text">
@@ -96,8 +96,8 @@ export default function ModelAnalysis() {
           </button>
         </div>
 
-        <div className="rounded-xl border border-primary/10 bg-primary/[0.03] p-4 text-sm text-muted-foreground">
-          <p className="font-semibold text-primary">Tip</p>
+        <div className="rounded-xl border border-orange-200/30 bg-orange-50/30 dark:bg-orange-950/10 dark:border-orange-800/30 p-4 text-sm text-muted-foreground">
+          <p className="font-semibold text-orange-600 dark:text-orange-400">Tip</p>
           <p className="mt-1">
             Run analysis first to estimate practical VRAM usage and choose safe defaults before tuning.
           </p>
@@ -119,11 +119,11 @@ export default function ModelAnalysis() {
               key={model.id}
               onClick={() => setModelId(model.id)}
               disabled={isLoading}
-              className="card-hover p-4 text-left"
+              className="card-hover p-4 text-left bg-white dark:bg-gray-900 border-orange-100 dark:border-orange-800/30"
             >
               <div className="flex items-center justify-between gap-2">
                 <p className="text-sm font-semibold">{model.name}</p>
-                <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-[11px] font-semibold text-primary">
+                <span className="rounded-full bg-orange-100 dark:bg-orange-900/30 px-2.5 py-0.5 text-[11px] font-semibold text-orange-700 dark:text-orange-300">
                   {model.size}
                 </span>
               </div>
@@ -138,12 +138,12 @@ export default function ModelAnalysis() {
 
       {/* Error */}
       {error && (
-        <div className="card border-destructive/20 bg-destructive/[0.03] p-5">
+        <div className="card border-rose-200/30 bg-rose-50/30 dark:bg-rose-950/10 dark:border-rose-800/30 p-5">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="mt-0.5 h-5 w-5 text-destructive" />
+            <AlertTriangle className="mt-0.5 h-5 w-5 text-rose-500" />
             <div>
-              <p className="text-sm font-semibold text-destructive">Analysis failed</p>
-              <p className="mt-1 text-sm text-destructive/80">{error}</p>
+              <p className="text-sm font-semibold text-rose-600 dark:text-rose-400">Analysis failed</p>
+              <p className="mt-1 text-sm text-rose-500/80">{error}</p>
             </div>
           </div>
         </div>
@@ -151,10 +151,10 @@ export default function ModelAnalysis() {
 
       {/* Results */}
       {modelInfo && (
-        <div className="card card-shadow-lg border-primary/10 p-4 sm:p-6 space-y-6 animate-scale-in">
+        <div className="card card-shadow-lg border-orange-200/30 bg-white dark:bg-gray-900 p-4 sm:p-6 space-y-6 animate-scale-in">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div className="min-w-0 flex-1">
-              <div className="badge-emerald inline-flex">
+              <div className="badge-success inline-flex">
                 <CheckCircle2 className="h-3.5 w-3.5" />
                 Analysis complete
               </div>
@@ -163,8 +163,8 @@ export default function ModelAnalysis() {
                 Architecture: {modelInfo.architecture}
               </p>
             </div>
-            <div className="rounded-xl bg-primary/10 px-4 sm:px-5 py-3 text-right shrink-0">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-primary whitespace-nowrap">
+            <div className="rounded-xl bg-orange-100 dark:bg-orange-900/30 px-4 sm:px-5 py-3 text-right shrink-0">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-orange-600 dark:text-orange-400 whitespace-nowrap">
                 Estimated QLoRA VRAM
               </p>
               <p className="mt-1 text-xl sm:text-2xl font-bold">~{Math.ceil((modelInfo.num_parameters * 0.55) / 1e9)} GB</p>
@@ -231,8 +231,8 @@ export default function ModelAnalysis() {
 
       {/* Empty state */}
       {!modelInfo && (
-        <div className="card p-5 flex items-center gap-3 text-sm text-muted-foreground">
-          <Cpu className="h-4 w-4 text-primary" />
+        <div className="card p-5 flex items-center gap-3 text-sm text-muted-foreground bg-white dark:bg-gray-900 border-orange-100 dark:border-orange-800/30">
+          <Cpu className="h-4 w-4 text-orange-500" />
           Analyze a base model to unlock memory planning and smart hyperparameter recommendations.
         </div>
       )}

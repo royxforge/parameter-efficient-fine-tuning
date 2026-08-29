@@ -162,9 +162,9 @@ export default function HyperparameterTuning() {
 
       {/* Recommendations section */}
       {!recommendations && (
-        <div className="card p-4 sm:p-5">
+        <div className="card p-4 sm:p-5 bg-white dark:bg-gray-900 border-orange-100 dark:border-orange-800/30">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400">
               <Wand2 className="h-6 w-6" />
             </div>
             <div className="flex-1">
@@ -195,9 +195,9 @@ export default function HyperparameterTuning() {
       )}
 
       {recommendations && (
-        <div className="card border-emerald-500/20 bg-emerald-500/[0.02] p-4 animate-scale-in">
+        <div className="card border-emerald-200/30 bg-emerald-50/30 dark:bg-emerald-950/10 dark:border-emerald-800/30 p-4 animate-scale-in">
           <div className="flex items-start gap-3">
-            <Sparkles className="mt-0.5 h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+            <Sparkles className="mt-0.5 h-5 w-5 text-emerald-500" />
             <div>
               <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-300">
                 Recommendations applied
@@ -211,22 +211,22 @@ export default function HyperparameterTuning() {
       )}
 
       {error && (
-        <div className="card border-destructive/20 bg-destructive/[0.03] p-5">
+        <div className="card border-rose-200/30 bg-rose-50/30 dark:bg-rose-950/10 dark:border-rose-800/30 p-5">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="mt-0.5 h-5 w-5 text-destructive shrink-0" />
+            <AlertTriangle className="mt-0.5 h-5 w-5 text-rose-500 shrink-0" />
             <div>
-              <p className="text-sm font-semibold text-destructive">Could not fetch recommendations</p>
-              <p className="mt-1 text-sm text-destructive/80">{error}</p>
+              <p className="text-sm font-semibold text-rose-600 dark:text-rose-400">Could not fetch recommendations</p>
+              <p className="mt-1 text-sm text-rose-500/80">{error}</p>
             </div>
           </div>
         </div>
       )}
 
       {/* Configuration form */}
-      <div className="card card-shadow-lg p-4 sm:p-6 space-y-7">
+      <div className="card card-shadow-lg p-4 sm:p-6 space-y-7 bg-white dark:bg-gray-900 border-orange-100 dark:border-orange-800/30">
         <div className="flex items-center justify-between gap-3">
           <h3 className="text-xl font-bold">Training configuration</h3>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-orange-100 dark:bg-orange-900/30 px-3 py-1 text-xs font-semibold text-orange-600 dark:text-orange-400">
             <SlidersHorizontal className="h-3.5 w-3.5" />
             Editable
           </span>
@@ -342,7 +342,7 @@ export default function HyperparameterTuning() {
         {/* Quantization info */}
         <div className="rounded-xl border bg-card/50 p-4">
           <div className="flex items-start gap-3">
-            <Info className="mt-0.5 h-5 w-5 text-primary shrink-0" />
+            <Info className="mt-0.5 h-5 w-5 text-orange-500 shrink-0" />
             <div className="space-y-1 text-sm text-muted-foreground">
               <p className="font-semibold text-foreground">Default quantization profile</p>
               <p>4-bit NF4 quantization with optional double quantization and paged optimizers.</p>
@@ -357,48 +357,48 @@ export default function HyperparameterTuning() {
             Advanced toggles
           </h4>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <label className="flex cursor-pointer items-start gap-3 rounded-xl border bg-card/50 p-3 py-3.5 sm:py-3 transition hover:border-primary/20 hover:bg-card touch-target">
+            <label className="flex cursor-pointer items-start gap-3 rounded-xl border bg-card/50 p-3 py-3.5 sm:py-3 transition hover:border-orange-200 dark:hover:border-orange-800/50 hover:bg-card touch-target">
               <input
                 type="checkbox"
                 checked={config.qlora}
                 onChange={(e) => setConfig((prev) => ({ ...prev, qlora: e.target.checked }))}
-                className="mt-0.5 h-4 w-4 rounded border-input text-primary focus:ring-primary"
+                className="mt-0.5 h-4 w-4 rounded border-input text-orange-600 focus:ring-orange-500"
               />
               <div>
                 <p className="text-sm font-semibold">QLoRA (4-bit)</p>
                 <p className="text-xs text-muted-foreground">Turn off only when testing non-quantized baselines.</p>
               </div>
             </label>
-            <label className="flex cursor-pointer items-start gap-3 rounded-xl border bg-card/50 p-3 transition hover:border-primary/20 hover:bg-card">
+            <label className="flex cursor-pointer items-start gap-3 rounded-xl border bg-card/50 p-3 transition hover:border-orange-200 dark:hover:border-orange-800/50 hover:bg-card">
               <input
                 type="checkbox"
                 checked={config.use_gradient_checkpointing}
                 onChange={(e) => setConfig((prev) => ({ ...prev, use_gradient_checkpointing: e.target.checked }))}
-                className="mt-0.5 h-4 w-4 rounded border-input text-primary focus:ring-primary"
+                className="mt-0.5 h-4 w-4 rounded border-input text-orange-600 focus:ring-orange-500"
               />
               <div>
                 <p className="text-sm font-semibold">Gradient checkpointing</p>
                 <p className="text-xs text-muted-foreground">Lower memory use with slight compute overhead.</p>
               </div>
             </label>
-            <label className="flex cursor-pointer items-start gap-3 rounded-xl border bg-card/50 p-3 transition hover:border-primary/20 hover:bg-card">
+            <label className="flex cursor-pointer items-start gap-3 rounded-xl border bg-card/50 p-3 transition hover:border-orange-200 dark:hover:border-orange-800/50 hover:bg-card">
               <input
                 type="checkbox"
                 checked={config.use_double_quant}
                 onChange={(e) => setConfig((prev) => ({ ...prev, use_double_quant: e.target.checked }))}
-                className="mt-0.5 h-4 w-4 rounded border-input text-primary focus:ring-primary"
+                className="mt-0.5 h-4 w-4 rounded border-input text-orange-600 focus:ring-orange-500"
               />
               <div>
                 <p className="text-sm font-semibold">Double quantization</p>
                 <p className="text-xs text-muted-foreground">Extra compression for VRAM-constrained hardware.</p>
               </div>
             </label>
-            <label className="flex cursor-pointer items-start gap-3 rounded-xl border bg-card/50 p-3 transition hover:border-primary/20 hover:bg-card">
+            <label className="flex cursor-pointer items-start gap-3 rounded-xl border bg-card/50 p-3 transition hover:border-orange-200 dark:hover:border-orange-800/50 hover:bg-card">
               <input
                 type="checkbox"
                 checked={config.use_paged_optimizers}
                 onChange={(e) => setConfig((prev) => ({ ...prev, use_paged_optimizers: e.target.checked }))}
-                className="mt-0.5 h-4 w-4 rounded border-input text-primary focus:ring-primary"
+                className="mt-0.5 h-4 w-4 rounded border-input text-orange-600 focus:ring-orange-500"
               />
               <div>
                 <p className="text-sm font-semibold">Paged optimizers</p>
@@ -410,7 +410,8 @@ export default function HyperparameterTuning() {
       </div>
 
       {/* Footer */}
-      <footer className="flex flex-col xs:flex-row items-stretch xs:items-center justify-between gap-3">            <button onClick={() => setCurrentStep('dataset')} className="btn-secondary justify-center">
+      <footer className="flex flex-col xs:flex-row items-stretch xs:items-center justify-between gap-3">
+        <button onClick={() => setCurrentStep('dataset')} className="btn-secondary justify-center">
           <ArrowLeft className="h-4 w-4" />
           Back to Dataset
         </button>

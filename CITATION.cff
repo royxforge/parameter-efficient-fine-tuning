@@ -6,8 +6,8 @@ authors:
     email: royxforge@gmail.com
     orcid: ""
 title: "Parameter Efficient Fine-Tuning: A Production-Grade LLM Fine-Tuning Platform with QLoRA"
-version: 0.6.0
-date-released: 2026-07-20
+version: 0.8.0
+date-released: 2026-08-29
 url: "https://github.com/royxforge/parameter-efficient-fine-tuning"
 repository-code: "https://github.com/royxforge/parameter-efficient-fine-tuning"
 license: MIT

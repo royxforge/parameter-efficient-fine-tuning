@@ -11,9 +11,9 @@ import {
   Clock3,
   Cpu,
   Download,
+  ExternalLink,
   Play,
   Zap,
-  Gauge,
   Layers,
   Brain,
 } from 'lucide-react';
@@ -32,6 +32,78 @@ export default function Training() {
 
   const [isStarting, setIsStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const triggerDownload = (content: string, filename: string, type: string) => {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const fetchFinetuningCode = async (): Promise<string | null> => {
+    if (!trainingConfig) return null;
+    try {
+      const response = await fetch('http://localhost:8000/api/generate-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code_type: 'finetuning',
+          model_info: { model_id: trainingConfig.model_id },
+          config: trainingConfig,
+        }),
+      });
+      if (!response.ok) throw new Error(`Failed to generate code: ${response.status}`);
+      const data = await response.json();
+      return data.code;
+    } catch (err: any) {
+      setError(err.message || 'Failed to generate fine-tuning code');
+      return null;
+    }
+  };
+
+  const handleDownloadCode = async () => {
+    setIsExporting(true);
+    setError(null);
+    try {
+      const code = await fetchFinetuningCode();
+      if (code) triggerDownload(code, 'finetune.py', 'text/x-python');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleOpenInColab = async () => {
+    setIsExporting(true);
+    setError(null);
+    try {
+      const code = await fetchFinetuningCode();
+      if (code) {
+        const installCell =
+          '!pip install -q torch transformers peft bitsandbytes accelerate datasets\n!pip install -q nvidia-ml-py3';
+        const notebook = {
+          nbformat: 4,
+          nbformat_minor: 0,
+          metadata: {
+            colab: { name: 'finetune.ipynb', provenance: [] },
+            kernelspec: { name: 'python3', display_name: 'Python 3' },
+            accelerator: 'GPU',
+          },
+          cells: [
+            { cell_type: 'code', metadata: {}, source: installCell.split('\n'), outputs: [], execution_count: null },
+            { cell_type: 'code', metadata: {}, source: code.split('\n'), outputs: [], execution_count: null },
+          ],
+        };
+        triggerDownload(JSON.stringify(notebook, null, 1), 'finetune.ipynb', 'application/x-ipynb+json');
+        window.open('https://colab.research.google.com/', '_blank', 'noopener,noreferrer');
+      }
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   useEffect(() => {
     if (!trainingJobId) return;
@@ -111,7 +183,7 @@ export default function Training() {
 
       {/* Pre-training overview */}
       {!trainingJobId && (
-        <div className="card card-shadow-lg p-4 sm:p-6 space-y-6 animate-scale-in">
+        <div className="card card-shadow-lg p-4 sm:p-6 space-y-6 animate-scale-in bg-white dark:bg-gray-900 border-orange-100 dark:border-orange-800/30">
           <div className="flex flex-col sm:flex-row flex-wrap items-start justify-between gap-4">
             <div>
               <h3 className="text-lg sm:text-xl font-bold">Ready to start training</h3>
@@ -136,6 +208,36 @@ export default function Training() {
                 </>
               )}
             </button>
+          </div>
+
+          {/* Run elsewhere */}
+          <div className="rounded-xl border bg-card/50 p-4">
+            <div className="flex flex-col sm:flex-row flex-wrap items-start sm:items-center justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold">Run it elsewhere</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">
+                  Export the complete fine-tuning code with your model and hyperparameters, ready to run standalone.
+                </p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  onClick={handleOpenInColab}
+                  disabled={isExporting || !trainingConfig}
+                  className="btn-secondary disabled:opacity-50"
+                >
+                  {isExporting ? <Activity className="h-4 w-4 animate-spin" /> : <ExternalLink className="h-4 w-4" />}
+                  Open in Colab
+                </button>
+                <button
+                  onClick={handleDownloadCode}
+                  disabled={isExporting || !trainingConfig}
+                  className="btn-secondary disabled:opacity-50"
+                >
+                  {isExporting ? <Activity className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}
+                  Download code
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Config summary */}
@@ -165,7 +267,7 @@ export default function Training() {
           </div>
 
           {!trainingConfig && (
-            <div className="rounded-xl border border-amber-500/20 bg-amber-500/[0.03] p-4 text-sm text-amber-600 dark:text-amber-400">
+            <div className="rounded-xl border border-amber-200/30 bg-amber-50/30 dark:bg-amber-950/10 dark:border-amber-800/30 p-4 text-sm text-amber-600 dark:text-amber-400">
               Configure hyperparameters before starting training.
             </div>
           )}
@@ -173,12 +275,12 @@ export default function Training() {
       )}
 
       {error && (
-        <div className="card border-destructive/20 bg-destructive/[0.03] p-5">
+        <div className="card border-rose-200/30 bg-rose-50/30 dark:bg-rose-950/10 dark:border-rose-800/30 p-5">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="mt-0.5 h-5 w-5 text-destructive shrink-0" />
+            <AlertTriangle className="mt-0.5 h-5 w-5 text-rose-500 shrink-0" />
             <div>
-              <p className="text-sm font-semibold text-destructive">Training failed to start</p>
-              <p className="mt-1 text-sm text-destructive/80">{error}</p>
+              <p className="text-sm font-semibold text-rose-600 dark:text-rose-400">Training failed to start</p>
+              <p className="mt-1 text-sm text-rose-500/80">{error}</p>
             </div>
           </div>
         </div>
@@ -187,8 +289,8 @@ export default function Training() {
       {/* Active training */}
       {trainingJobId && trainingProgress && (
         <div
-          className={`card card-shadow-lg p-4 sm:p-6 space-y-6 animate-scale-in ${
-            isCompleted ? 'border-emerald-500/20' : isFailed ? 'border-destructive/20' : ''
+          className={`card card-shadow-lg p-4 sm:p-6 space-y-6 animate-scale-in bg-white dark:bg-gray-900 ${
+            isCompleted ? 'border-emerald-200/30' : isFailed ? 'border-rose-200/30' : 'border-orange-100 dark:border-orange-800/30'
           }`}
         >
           {/* Status header */}
@@ -197,10 +299,10 @@ export default function Training() {
               <div
                 className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-wider ${
                   isCompleted
-                    ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                    ? 'border-emerald-200/30 bg-emerald-50/30 dark:bg-emerald-950/10 text-emerald-600 dark:text-emerald-400'
                     : isFailed
-                      ? 'border-destructive/25 bg-destructive/10 text-destructive'
-                      : 'border-primary/25 bg-primary/10 text-primary'
+                      ? 'border-rose-200/30 bg-rose-50/30 dark:bg-rose-950/10 text-rose-600 dark:text-rose-400'
+                      : 'border-orange-200/30 bg-orange-50/30 dark:bg-orange-950/10 text-orange-600 dark:text-orange-400'
                 }`}
               >
                 {isCompleted ? <CheckCircle2 className="h-3.5 w-3.5" /> : <Zap className="h-3.5 w-3.5" />}
@@ -209,8 +311,8 @@ export default function Training() {
               <h3 className="mt-3 text-xl font-bold">Training job in progress</h3>
               <p className="mt-1 text-sm text-muted-foreground font-mono text-xs">Job: {trainingJobId}</p>
             </div>
-            <div className="rounded-xl bg-primary/10 px-5 py-3.5 text-right">
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-primary">Progress</p>
+            <div className="rounded-xl bg-orange-100 dark:bg-orange-900/30 px-5 py-3.5 text-right">
+              <p className="text-[11px] font-semibold uppercase tracking-wider text-orange-600 dark:text-orange-400">Progress</p>
               <p className="mt-1 text-2xl font-bold">{progressPercent}%</p>
             </div>
           </div>
@@ -226,7 +328,7 @@ export default function Training() {
             <div className="progress-bar h-3">
               <div
                 className={`progress-bar-fill h-full ${
-                  isFailed ? '!bg-gradient-to-r from-destructive to-destructive/80' : ''
+                  isFailed ? '!bg-gradient-to-r from-rose-500 to-rose-400' : ''
                 }`}
                 style={{ width: `${progressPercent}%` }}
               />
@@ -240,7 +342,7 @@ export default function Training() {
           )}
 
           {isFailed && trainingProgress.error_message && (
-            <div className="rounded-xl border border-destructive/20 bg-destructive/[0.03] px-4 py-3 text-sm text-destructive/80">
+            <div className="rounded-xl border border-rose-200/30 bg-rose-50/30 dark:bg-rose-950/10 dark:border-rose-800/30 px-4 py-3 text-sm text-rose-600 dark:text-rose-400">
               {trainingProgress.error_message}
             </div>
           )}
@@ -307,7 +409,7 @@ export default function Training() {
 
           {/* Artifacts on completion */}
           {isCompleted && (
-            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/[0.03] p-5 animate-scale-in">
+            <div className="rounded-xl border border-emerald-200/30 bg-emerald-50/30 dark:bg-emerald-950/10 dark:border-emerald-800/30 p-5 animate-scale-in">
               <h4 className="flex items-center gap-2 text-sm font-semibold text-emerald-700 dark:text-emerald-300">
                 <CheckCircle2 className="h-4 w-4" />
                 Training complete — download artifacts
@@ -347,7 +449,6 @@ export default function Training() {
                   <Download className="h-4 w-4" />
                   Experiment metadata
                 </a>
-
               </div>
             </div>
           )}

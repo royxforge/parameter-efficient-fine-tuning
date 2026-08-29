@@ -50,6 +50,12 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
+Or install backend dependencies directly:
+
+```bash
+cd backend && pip install -r requirements.txt && cd ..
+```
+
 ### Frontend Setup
 
 ```bash
@@ -60,8 +66,8 @@ npm install
 ### Verify Installation
 
 ```bash
-# Backend
-python -c "from backend.main import app; print('Backend OK')"
+# Backend (from project root)
+python -c "import sys; sys.path.insert(0, 'backend'); from main import app; print('Backend OK')"
 
 # Frontend
 cd frontend && npm run lint
@@ -75,6 +81,7 @@ cd frontend && npm run lint
 - Use type annotations for all function signatures.
 - Maximum line length: 88 characters.
 - Use descriptive variable names.
+- Add new API endpoints to the appropriate router module in `backend/routers/` rather than `backend/main.py`.
 
 ### TypeScript/Next.js
 
@@ -114,6 +121,8 @@ experiments run end-to-end.
    pytest backend/tests/ -v
    cd frontend && npm run build
    ```
+
+   > **Note:** The backend uses a modular router architecture under `backend/routers/`. New API endpoints should be added to the appropriate router module rather than `backend/main.py`.
 
 4. Push your branch and open a Pull Request on GitHub.
 

@@ -6,6 +6,56 @@ The format follows the principles of [Keep a Changelog](https://keepachangelog.c
 
 ---
 
+## [0.8.0] - 2026-08-29
+
+### Added
+
+- **Modular backend API architecture**: Decomposed the monolithic `backend/main.py` (780+ lines) into six focused router modules under `backend/routers/`:
+  - `models.py` — Model analysis and popular model listing endpoints.
+  - `datasets.py` — Dataset upload (file and HuggingFace Hub) and validation endpoints.
+  - `training.py` — Training job lifecycle, hyperparameter recommendations, WebSocket streaming, and file download endpoints.
+  - `quantization.py` — Model quantization and method comparison endpoints.
+  - `codegen.py` — Code generation endpoint supporting inference, Gradio, FastAPI, README, and standalone fine-tuning script generation.
+  - `experiments.py` — Experiment evaluation, metadata retrieval, and artifact download endpoints.
+  - `deps.py` — Centralized service dependency injection for all routers.
+  - `__init__.py` — Package initialization.
+
+- **Path traversal prevention**: Added `backend/utils/security.py` with `safe_child_path()` utility that validates all file-access paths stay within allowed base directories. Integrated across all download, upload, and file-serving endpoints.
+
+- **Experiment evaluation endpoint**: Added `POST /api/experiment/{job_id}/evaluate` that runs `EvalService.evaluate_model()` on completed training jobs, generates a model card, and persists evaluation metrics and model card as JSON artifacts.
+
+- **Expanded test suite**: Added 30+ new unit tests across two test modules:
+  - `tests/test_api.py` — 11 API endpoint tests covering health checks, training progress, cancel, job listing, path traversal prevention (standard, Windows, and URL-encoded variants), error response shape validation, and missing-field handling.
+  - `tests/test_training_service.py` — 7 training service tests covering job management, progress retrieval, evaluation loss tracking, cancellation lifecycle, and cleanup.
+
+- **Root entry point**: Added `run.py` at the project root for simplified backend startup with `python run.py`, resolving the Python path automatically.
+
+- **Root-level requirements**: Added `requirements.txt` at the project root that forwards to `backend/requirements.txt`, simplifying dependency installation.
+
+- **Standalone fine-tuning script generation**: Added `generate_finetuning_script()` to `CodeGenerator` that produces a self-contained Python script with all hyperparameters baked in, ready to run in Google Colab or locally. The Training component now offers "Download code" and "Open in Colab" actions.
+
+### Changed
+
+- **Backend entry point**: `backend/main.py` reduced from ~780 lines to ~80 lines — now only handles app initialization, CORS, router registration, and health/root endpoints.
+
+- **Training component (`Training.tsx`)**: Redesigned the pre-training view with a configuration summary grid (model, dataset, epochs, learning rate), "Run it elsewhere" section with Colab and download buttons, and refined the active training view with cleaner metric tiles, progress visualization, and artifact download links on completion.
+
+- **Frontend component simplification**: Refactored all six major frontend components (`CodeGeneration`, `DatasetUpload`, `HyperparameterTuning`, `LandingExperience`, `ModelAnalysis`, `PipelineWorkspace`) — simplified markup, removed excessive wrapper elements, and consolidated styling for consistency.
+
+- **Global stylesheet (`globals.css`)**: Streamlined CSS by removing redundant utility classes and consolidating animation keyframes, reducing the stylesheet by ~400 lines while preserving all visual behavior.
+
+- **Training service (`training_service.py`)**: Refactored to use centralized dependency injection from `routers/deps.py` instead of local instantiation.
+
+- **API version bump**: FastAPI app version updated from 0.7.0 to 0.8.0.
+
+### Security
+
+- Path traversal prevention across all file-serving endpoints using `safe_child_path()`.
+- File upload validation rejecting filenames starting with dots.
+- URL-encoded and backslash-based traversal vectors tested and blocked.
+
+---
+
 ## [0.7.0] - 2026-07-20
 
 ### Added
@@ -209,6 +259,7 @@ The format follows the principles of [Keep a Changelog](https://keepachangelog.c
 
 ## Release History
 
+- **0.8.0** - 2026-08-29: Modular backend architecture, path traversal prevention, experiment evaluation, expanded test suite, and standalone fine-tuning script generation.
 - **0.5.0** - 2026-07-14: Documentation and frontend component refinements.
 - **0.4.1** - 2026-06-13: Documentation revisions and visual asset update.
 - **0.4.0** - 2026-05-25: Full frontend component architecture with Tailwind CSS and Zustand.

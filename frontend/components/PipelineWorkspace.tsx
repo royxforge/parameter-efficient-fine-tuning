@@ -141,21 +141,23 @@ export default function PipelineWorkspace({ compactHeader = false }: PipelineWor
   const estimatedVram = modelInfo ? Math.ceil((modelInfo.num_parameters * 0.55) / 1e9) : null;
 
   return (
-    <main className="relative min-h-screen">
+    <main className="relative min-h-screen bg-gradient-to-b from-orange-50/30 to-white dark:from-orange-950/10 dark:to-gray-950">
       {/* Background */}
       <div className="pointer-events-none fixed inset-0">
-        <div className="absolute left-4 top-24 h-72 w-72 rounded-full bg-violet-500/8 blur-[100px]" />
-        <div className="absolute right-0 top-0 h-80 w-80 rounded-full bg-emerald-500/6 blur-[100px]" />
+        <div className="absolute left-4 top-24 h-72 w-72 rounded-full bg-orange-500/8 dark:bg-orange-500/5 blur-[100px]" />
+        <div className="absolute right-0 top-0 h-80 w-80 rounded-full bg-orange-400/6 dark:bg-orange-400/4 blur-[100px]" />
       </div>
 
       {/* Top Nav */}
-      <nav className="sticky top-0 z-50 border-b bg-background/70 backdrop-blur-xl">
+      <nav className="sticky top-0 z-50 border-b bg-white/70 dark:bg-gray-950/70 backdrop-blur-xl">
         <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary shadow-glow">
-              <Bot className="h-4 w-4 text-primary-foreground" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-600 shadow-glow">
+              <Bot className="h-4 w-4 text-white" />
             </div>
-            <span className="text-sm font-bold tracking-tight">Parameter Efficient Fine-Tuning</span>
+            <span className="text-sm font-bold tracking-tight bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent">
+              Parameter Efficient Fine-Tuning
+            </span>
             <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/40" />
             <span className="text-sm text-muted-foreground">
               {compactHeader ? 'Pipeline' : 'Training Workspace'}
@@ -164,7 +166,7 @@ export default function PipelineWorkspace({ compactHeader = false }: PipelineWor
 
           <div className="flex items-center gap-2 sm:gap-3">
             <div className="hidden sm:flex items-center gap-2 rounded-lg border bg-card/50 px-3 py-1.5 text-xs font-medium text-muted-foreground">
-              <Sparkles className="h-3.5 w-3.5 text-primary" />
+              <Sparkles className="h-3.5 w-3.5 text-orange-500" />
               {steps[currentStepIndex].label}
             </div>
             <button
@@ -191,7 +193,7 @@ export default function PipelineWorkspace({ compactHeader = false }: PipelineWor
       <div className="mx-auto max-w-7xl px-4 sm:px-6 pb-10 pt-4 sm:pt-6">
         {/* Pipeline Steps Nav */}
         <motion.div
-          className="card card-shadow-lg p-4 md:p-6"
+          className="card card-shadow-lg p-4 md:p-6 bg-white dark:bg-gray-900 border-orange-100 dark:border-orange-800/30"
           variants={fadeInUp}
           initial="hidden"
           animate="visible"
@@ -243,9 +245,9 @@ export default function PipelineWorkspace({ compactHeader = false }: PipelineWor
                   onClick={() => setCurrentStep(step.id)}
                   className={`group relative rounded-xl border p-3 text-left transition-all duration-200 min-w-[160px] sm:min-w-0 shrink-0 snap-start ${
                     active
-                      ? 'border-primary/40 bg-primary/5 shadow-sm'
+                      ? 'border-orange-400/40 bg-orange-50 dark:bg-orange-950/40 shadow-sm shadow-orange-500/10'
                       : done
-                        ? 'border-border bg-card/50 hover:border-primary/20 hover:bg-card'
+                        ? 'border-border bg-card/50 hover:border-orange-200 dark:hover:border-orange-800/50 hover:bg-card'
                         : 'border-border/60 bg-card/30 hover:border-border'
                   } ${!available ? 'cursor-not-allowed opacity-40' : ''}`}
                 >
@@ -253,9 +255,9 @@ export default function PipelineWorkspace({ compactHeader = false }: PipelineWor
                     <span
                       className={`flex h-8 w-8 items-center justify-center rounded-lg text-xs font-bold transition-colors ${
                         active
-                          ? 'bg-primary text-primary-foreground shadow-glow'
+                          ? 'bg-orange-600 text-white shadow-glow'
                           : done
-                            ? 'bg-primary/10 text-primary'
+                            ? 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400'
                             : 'bg-muted text-muted-foreground'
                       }`}
                     >
@@ -282,7 +284,7 @@ export default function PipelineWorkspace({ compactHeader = false }: PipelineWor
           animate="visible"
         >
           <motion.div
-            className="card card-shadow-lg min-h-[600px] p-6 md:p-8"
+            className="card card-shadow-lg min-h-[600px] p-6 md:p-8 bg-white dark:bg-gray-900 border-orange-100 dark:border-orange-800/30"
             variants={staggerItem}
           >
             {renderStep()}
@@ -290,7 +292,7 @@ export default function PipelineWorkspace({ compactHeader = false }: PipelineWor
 
           {/* Sidebar */}
           <motion.aside className="space-y-4 w-full" variants={staggerItem}>
-            <div className="card p-4">
+            <div className="card p-4 bg-white dark:bg-gray-900 border-orange-100 dark:border-orange-800/30">
               <p className="label-text">Session Snapshot</p>
               <div className="divider-subtle my-3" />
               <ul className="space-y-3 text-sm">
@@ -317,9 +319,9 @@ export default function PipelineWorkspace({ compactHeader = false }: PipelineWor
                   <span
                     className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${
                       trainingProgress?.status === 'completed'
-                        ? 'badge-emerald'
+                        ? 'badge-success'
                         : trainingProgress?.status === 'running'
-                          ? 'badge-amber'
+                          ? 'badge-warning'
                           : 'badge'
                     }`}
                   >
@@ -329,8 +331,8 @@ export default function PipelineWorkspace({ compactHeader = false }: PipelineWor
               </ul>
             </div>
 
-            <div className="card p-4 border-primary/10 bg-primary/[0.02]">
-              <p className="label-text text-primary">Resource Planner</p>
+            <div className="card p-4 border-orange-200/30 bg-orange-50/30 dark:bg-orange-950/10 dark:border-orange-800/30">
+              <p className="label-text text-orange-600 dark:text-orange-400">Resource Planner</p>
               <div className="divider-subtle my-3" />
               <p className="text-sm leading-relaxed text-muted-foreground">
                 {estimatedVram
@@ -344,20 +346,20 @@ export default function PipelineWorkspace({ compactHeader = false }: PipelineWor
               )}
             </div>
 
-            <div className="card p-4">
+            <div className="card p-4 bg-white dark:bg-gray-900 border-orange-100 dark:border-orange-800/30">
               <p className="label-text">Guidance</p>
               <div className="divider-subtle my-3" />
               <ul className="space-y-2.5 text-sm text-muted-foreground">
                 <li className="flex items-start gap-2">
-                  <TerminalSquare className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  <TerminalSquare className="mt-0.5 h-4 w-4 shrink-0 text-orange-500" />
                   Analyze model and dataset before tuning.
                 </li>
                 <li className="flex items-start gap-2">
-                  <TerminalSquare className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  <TerminalSquare className="mt-0.5 h-4 w-4 shrink-0 text-orange-500" />
                   Keep batch size conservative.
                 </li>
                 <li className="flex items-start gap-2">
-                  <TerminalSquare className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  <TerminalSquare className="mt-0.5 h-4 w-4 shrink-0 text-orange-500" />
                   Export both inference and API templates.
                 </li>
               </ul>

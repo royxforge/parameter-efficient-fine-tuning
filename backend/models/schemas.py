@@ -223,4 +223,6 @@ class GeneratedCode(BaseModel):
 
 
 class ErrorResponse(BaseModel):
-    detail: str
+    error: str
+    detail: Optional[str] = None
+    status_code: int

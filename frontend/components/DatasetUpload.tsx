@@ -87,11 +87,11 @@ export default function DatasetUpload() {
 
       {/* Context banner */}
       {modelInfo && (
-        <div className="card border-primary/10 bg-primary/[0.02] p-4">
+        <div className="card border-orange-200/30 bg-orange-50/30 dark:bg-orange-950/10 dark:border-orange-800/30 p-4">
           <div className="flex items-start gap-3">
-            <Info className="mt-0.5 h-5 w-5 text-primary shrink-0" />
+            <Info className="mt-0.5 h-5 w-5 text-orange-500 shrink-0" />
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-primary">Current model</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-orange-600 dark:text-orange-400">Current model</p>
               <p className="mt-0.5 text-sm font-medium">{modelInfo.model_id}</p>
             </div>
           </div>
@@ -102,14 +102,14 @@ export default function DatasetUpload() {
       {!datasetInfo && (
         <div
           {...getRootProps()}
-          className={`card cursor-pointer border-2 border-dashed p-10 text-center transition-all duration-200 md:p-14 ${
+          className={`card cursor-pointer border-2 border-dashed p-10 text-center transition-all duration-200 md:p-14 bg-white dark:bg-gray-900 ${
             isDragActive
-              ? 'border-primary bg-primary/5 shadow-glow'
-              : 'border-border hover:border-primary/40 hover:bg-card/80'
+              ? 'border-orange-400 bg-orange-50/30 dark:bg-orange-950/20 shadow-glow'
+              : 'border-border hover:border-orange-300 dark:hover:border-orange-700 hover:bg-card/80'
           }`}
         >
           <input {...getInputProps()} />
-          <div className="mx-auto mb-5 flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+          <div className="mx-auto mb-5 flex h-14 w-14 sm:h-16 sm:w-16 items-center justify-center rounded-2xl bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400">
             <Upload className="h-6 w-6 sm:h-7 sm:w-7" />
           </div>
           <h3 className="text-lg sm:text-xl font-bold">
@@ -125,10 +125,10 @@ export default function DatasetUpload() {
 
       {/* File selected */}
       {file && !datasetInfo && (
-        <div className="card card-shadow-lg p-5 animate-scale-in">
+        <div className="card card-shadow-lg p-5 animate-scale-in bg-white dark:bg-gray-900 border-orange-100 dark:border-orange-800/30">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
-              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400">
                 <File className="h-5 w-5" />
               </div>
               <div>
@@ -155,12 +155,12 @@ export default function DatasetUpload() {
 
       {/* Error */}
       {error && (
-        <div className="card border-destructive/20 bg-destructive/[0.03] p-5">
+        <div className="card border-rose-200/30 bg-rose-50/30 dark:bg-rose-950/10 dark:border-rose-800/30 p-5">
           <div className="flex items-start gap-3">
-            <AlertTriangle className="mt-0.5 h-5 w-5 text-destructive shrink-0" />
+            <AlertTriangle className="mt-0.5 h-5 w-5 text-rose-500 shrink-0" />
             <div>
-              <p className="text-sm font-semibold text-destructive">Upload failed</p>
-              <p className="mt-1 text-sm text-destructive/80">{error}</p>
+              <p className="text-sm font-semibold text-rose-600 dark:text-rose-400">Upload failed</p>
+              <p className="mt-1 text-sm text-rose-500/80">{error}</p>
             </div>
           </div>
         </div>
@@ -168,10 +168,10 @@ export default function DatasetUpload() {
 
       {/* Results */}
       {datasetInfo && (
-        <div className="card card-shadow-lg border-emerald-500/20 p-6 space-y-6 animate-scale-in">
+        <div className="card card-shadow-lg border-emerald-200/30 bg-white dark:bg-gray-900 p-6 space-y-6 animate-scale-in">
           <div className="flex flex-wrap items-start justify-between gap-4">
             <div>
-              <div className="badge-emerald inline-flex">
+              <div className="badge-success inline-flex">
                 <CheckCircle2 className="h-3.5 w-3.5" />
                 Dataset ready
               </div>
@@ -180,7 +180,7 @@ export default function DatasetUpload() {
                 Format: {datasetInfo.format.toUpperCase()}
               </p>
             </div>
-            <div className="rounded-xl bg-emerald-500/10 px-5 py-3.5 text-right">
+            <div className="rounded-xl bg-emerald-100 dark:bg-emerald-900/30 px-5 py-3.5 text-right">
               <p className="text-[11px] font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
                 Size
               </p>
@@ -212,7 +212,7 @@ export default function DatasetUpload() {
 
           {/* Warnings */}
           {datasetInfo.validation_warnings?.length > 0 && (
-            <div className="rounded-xl border border-amber-500/20 bg-amber-500/[0.03] p-4">
+            <div className="rounded-xl border border-amber-200/30 bg-amber-50/30 dark:bg-amber-950/10 dark:border-amber-800/30 p-4">
               <p className="text-sm font-semibold text-amber-600 dark:text-amber-400">Validation warnings</p>
               <ul className="mt-2 space-y-1.5">
                 {datasetInfo.validation_warnings.map((warning, i) => (
@@ -230,7 +230,7 @@ export default function DatasetUpload() {
             <div className="overflow-hidden rounded-xl border">
               <div className="border-b bg-muted/30 px-3 sm:px-4 py-3">
                 <p className="flex items-center gap-2 text-sm font-semibold">
-                  <Table className="h-4 w-4 text-primary" />
+                  <Table className="h-4 w-4 text-orange-500" />
                   Dataset preview
                 </p>
               </div>

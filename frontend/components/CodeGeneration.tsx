@@ -165,10 +165,10 @@ export default function CodeGeneration() {
       </div>
 
       {/* Model artifact download */}
-      <div className="card card-shadow-lg border-emerald-500/20 p-4 sm:p-6 space-y-5 animate-scale-in">
+      <div className="card card-shadow-lg border-emerald-200/30 bg-white dark:bg-gray-900 p-4 sm:p-6 space-y-5 animate-scale-in">
         <div className="flex flex-col sm:flex-row flex-wrap items-start justify-between gap-4">
           <div>
-            <div className="badge-emerald inline-flex">
+            <div className="badge-success inline-flex">
               <CheckCircle2 className="h-3.5 w-3.5" />
               Package your trained output
             </div>
@@ -207,7 +207,7 @@ export default function CodeGeneration() {
         </div>
 
         {downloadError && (
-          <div className="rounded-xl border border-destructive/20 bg-destructive/[0.03] p-3 text-sm text-destructive">
+          <div className="rounded-xl border border-rose-200/30 bg-rose-50/30 dark:bg-rose-950/10 dark:border-rose-800/30 p-3 text-sm text-rose-600 dark:text-rose-400">
             {downloadError}
           </div>
         )}
@@ -215,7 +215,7 @@ export default function CodeGeneration() {
 
       {/* Evaluation metrics */}
       {(evalMetrics || isLoadingEval) && (
-        <div className="card p-5 space-y-4 animate-fade-in-up">
+        <div className="card p-5 space-y-4 bg-white dark:bg-gray-900 border-orange-100 dark:border-orange-800/30 animate-fade-in-up">
           <h3 className="text-base font-semibold">Evaluation snapshot</h3>
 
           {isLoadingEval ? (
@@ -257,9 +257,9 @@ export default function CodeGeneration() {
 
       {/* Model card */}
       {modelCard && (
-        <div className="card p-5 space-y-4 animate-fade-in-up">
+        <div className="card p-5 space-y-4 bg-white dark:bg-gray-900 border-orange-100 dark:border-orange-800/30 animate-fade-in-up">
           <h3 className="flex items-center gap-2 text-base font-semibold">
-            <FileCheck2 className="h-5 w-5 text-primary" />
+            <FileCheck2 className="h-5 w-5 text-orange-500" />
             Model card
           </h3>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -275,7 +275,7 @@ export default function CodeGeneration() {
           {modelCard.tags && modelCard.tags.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {modelCard.tags.map((tag, i) => (
-                <span key={`${tag}-${i}`} className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
+                <span key={`${tag}-${i}`} className="inline-flex items-center gap-1 rounded-full bg-orange-100 dark:bg-orange-900/30 px-3 py-1 text-xs font-medium text-orange-700 dark:text-orange-300">
                   <Tag className="h-3 w-3" />
                   {tag}
                 </span>
@@ -290,9 +290,9 @@ export default function CodeGeneration() {
 
       {/* Experiment metadata */}
       {experimentMetadata && (
-        <div className="card p-5 space-y-4 animate-fade-in-up">
+        <div className="card p-5 space-y-4 bg-white dark:bg-gray-900 border-orange-100 dark:border-orange-800/30 animate-fade-in-up">
           <h3 className="flex items-center gap-2 text-base font-semibold">
-            <PackageOpen className="h-5 w-5 text-primary" />
+            <PackageOpen className="h-5 w-5 text-orange-500" />
             Experiment metadata
           </h3>
           <div className="grid gap-3 sm:grid-cols-3">
@@ -317,7 +317,7 @@ export default function CodeGeneration() {
       )}
 
       {/* Code generation */}
-      <div className="card card-shadow-lg p-4 sm:p-6 space-y-5">
+      <div className="card card-shadow-lg p-4 sm:p-6 space-y-5 bg-white dark:bg-gray-900 border-orange-100 dark:border-orange-800/30">
         <h3 className="text-lg sm:text-xl font-bold">Generate code templates</h3>
 
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -329,12 +329,12 @@ export default function CodeGeneration() {
                 key={type.id}
                 onClick={() => setSelectedType(type.id)}
                 className={`card-hover p-4 text-left ${
-                  active ? 'border-primary/30 bg-primary/[0.03]' : ''
+                  active ? 'border-orange-300 dark:border-orange-700 bg-orange-50/30 dark:bg-orange-950/20' : ''
                 }`}
               >
                 <span
                   className={`flex h-9 w-9 items-center justify-center rounded-xl text-xs font-bold ${
-                    active ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+                    active ? 'bg-orange-600 text-white shadow-glow' : 'bg-muted text-muted-foreground'
                   }`}
                 >
                   <Icon className="h-4 w-4" />
@@ -392,9 +392,9 @@ export default function CodeGeneration() {
       </div>
 
       {/* Next actions */}
-      <div className="card border-primary/10 bg-primary/[0.02] p-5">
+      <div className="card border-orange-200/30 bg-orange-50/30 dark:bg-orange-950/10 dark:border-orange-800/30 p-5">
         <h3 className="flex items-center gap-2 text-base font-semibold mb-3">
-          <Rocket className="h-5 w-5 text-primary" />
+          <Rocket className="h-5 w-5 text-orange-500" />
           Next actions
         </h3>
         <ul className="space-y-2 text-sm text-muted-foreground">
@@ -404,7 +404,7 @@ export default function CodeGeneration() {
             'Track evaluation metrics and iterate on hyperparameters for improved quality.',
           ].map((action, i) => (
             <li key={i} className="flex items-start gap-2">
-              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
+              <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-orange-500" />
               {action}
             </li>
           ))}
@@ -413,7 +413,7 @@ export default function CodeGeneration() {
 
       {/* Empty state */}
       {!trainingJobId && (
-        <div className="rounded-xl border border-amber-500/20 bg-amber-500/[0.03] p-4 text-sm text-amber-600 dark:text-amber-400">
+        <div className="rounded-xl border border-amber-200/30 bg-amber-50/30 dark:bg-amber-950/10 dark:border-amber-800/30 p-4 text-sm text-amber-600 dark:text-amber-400">
           <div className="flex items-start gap-2">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
             <span>No completed training job found. Finish training before exporting final artifacts.</span>

@@ -12,6 +12,8 @@ import {
   Wand2,
   Layers,
   Cpu,
+  BarChart3,
+  FileCode2,
 } from 'lucide-react';
 import { useTheme } from '@/lib/theme-provider';
 import {
@@ -34,25 +36,21 @@ const highlights = [
     icon: Brain,
     title: 'Context-aware analysis',
     description: 'Inspect architecture, memory footprint, and compute expectations before training starts.',
-    gradient: 'from-violet-500/20 to-purple-500/10',
   },
   {
     icon: Database,
     title: 'Dataset quality workflow',
     description: 'Validate and profile training sets with clear quality signals and actionable warnings.',
-    gradient: 'from-emerald-500/20 to-teal-500/10',
   },
   {
     icon: Gauge,
     title: 'Adaptive training control',
     description: 'Balance speed, quality, and memory with practical presets and full manual controls.',
-    gradient: 'from-amber-500/20 to-orange-500/10',
   },
   {
     icon: ShieldCheck,
     title: 'Deployment-ready output',
     description: 'Generate clean handoff artifacts, model packaging, and integration code for production.',
-    gradient: 'from-sky-500/20 to-blue-500/10',
   },
 ];
 
@@ -75,36 +73,33 @@ export default function LandingExperience({ onStart }: LandingExperienceProps) {
 
   return (
     <motion.main
-      className="relative min-h-screen overflow-hidden"
+      className="relative min-h-screen overflow-hidden bg-gradient-to-b from-orange-50/30 to-white dark:from-orange-950/10 dark:to-gray-950"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4 }}
     >
       {/* Background effects */}
-      <motion.div
-        className="pointer-events-none fixed inset-0"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.8 }}
-      >
-        <div className="absolute -left-32 top-20 h-[500px] w-[500px] rounded-full bg-violet-500/10 blur-[120px]" />
-        <div className="absolute right-0 top-1/3 h-[400px] w-[400px] rounded-full bg-emerald-500/8 blur-[100px]" />
-        <div className="absolute bottom-0 left-1/4 h-[300px] w-[300px] rounded-full bg-amber-500/6 blur-[80px]" />
-      </motion.div>
+      <div className="pointer-events-none fixed inset-0">
+        <div className="absolute -left-32 top-20 h-[500px] w-[500px] rounded-full bg-orange-500/10 dark:bg-orange-500/5 blur-[120px]" />
+        <div className="absolute right-0 top-1/3 h-[400px] w-[400px] rounded-full bg-orange-400/8 dark:bg-orange-400/4 blur-[100px]" />
+        <div className="absolute bottom-0 left-1/4 h-[300px] w-[300px] rounded-full bg-orange-300/6 dark:bg-orange-300/3 blur-[80px]" />
+      </div>
 
       {/* Nav */}
       <motion.nav
-        className="sticky top-0 z-50 border-b bg-background/60 backdrop-blur-xl"
+        className="sticky top-0 z-50 border-b bg-white/60 dark:bg-gray-950/60 backdrop-blur-xl"
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
       >
-        <div className="mx-auto flex h-14 sm:h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary shadow-glow">
-              <Bot className="h-5 w-5 text-primary-foreground" />
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-orange-600 shadow-lg shadow-orange-500/20">
+              <Bot className="h-5 w-5 text-white" />
             </div>
-            <span className="text-lg font-bold tracking-tight">Parameter Efficient Fine-Tuning</span>
+            <span className="text-lg font-bold tracking-tight bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent">
+              Parameter Efficient Fine-Tuning
+            </span>
           </div>
           <div className="flex items-center gap-4">
             <button
@@ -115,7 +110,7 @@ export default function LandingExperience({ onStart }: LandingExperienceProps) {
             </button>
             <button
               onClick={onStart}
-              className="btn-primary px-4 sm:px-5 py-2 text-sm"
+              className="btn-primary px-5 py-2.5 text-sm"
             >
               <span className="hidden xs:inline">Get Started</span>
               <span className="xs:hidden">Start</span>
@@ -126,12 +121,6 @@ export default function LandingExperience({ onStart }: LandingExperienceProps) {
       </motion.nav>
 
       <div className="relative mx-auto max-w-7xl px-6 pb-20 pt-12 md:pt-20">
-        {/* Page entrance marker */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.01 }}
-        />
         {/* Hero */}
         <motion.section
           className="grid gap-12 lg:grid-cols-[1.3fr_1fr] lg:items-center"
@@ -147,7 +136,7 @@ export default function LandingExperience({ onStart }: LandingExperienceProps) {
 
             <h1 className="max-w-3xl text-3xl sm:text-4xl font-bold leading-tight tracking-tight md:text-5xl lg:text-6xl">
               Build specialized{' '}
-              <span className="gradient-text-strong">language models</span>
+              <span className="bg-gradient-to-r from-orange-600 to-orange-400 bg-clip-text text-transparent">language models</span>
               {' '}with a modern control room.
             </h1>
 
@@ -162,7 +151,7 @@ export default function LandingExperience({ onStart }: LandingExperienceProps) {
                 <ArrowRight className="h-4 w-4" />
               </button>
               <span className="inline-flex items-center justify-center gap-2.5 rounded-xl border bg-card/50 px-4 py-2.5 text-sm font-medium text-muted-foreground">
-                <span className="dot-emerald" />
+                <span className="h-2 w-2 rounded-full bg-emerald-500 shadow-emerald-500/20 shadow-lg" />
                 Live progress & artifact exports
               </span>
             </div>
@@ -181,7 +170,7 @@ export default function LandingExperience({ onStart }: LandingExperienceProps) {
 
           {/* Workflow preview card */}
           <motion.div
-            className="card gradient-border"
+            className="card gradient-border bg-white dark:bg-gray-900 p-1 shadow-xl shadow-orange-500/5"
             variants={slideInRight}
             transition={{ delay: 0.3 }}
           >
@@ -191,27 +180,27 @@ export default function LandingExperience({ onStart }: LandingExperienceProps) {
                   <p className="label-text">Workflow Preview</p>
                   <h2 className="text-xl font-bold">Fine-Tuning Pipeline</h2>
                 </div>
-                <div className="rounded-xl bg-primary/10 p-3 text-primary">
+                <div className="rounded-xl bg-orange-100 dark:bg-orange-900/30 p-3 text-orange-600 dark:text-orange-400">
                   <Wand2 className="h-5 w-5" />
                 </div>
               </div>
 
               <div className="space-y-2.5">
-                {phases.map((phase, index) => {
+                {phases.map((phase) => {
                   const Icon = phase.icon;
                   return (
                     <div
                       key={phase.step}
-                      className="group flex items-center gap-3 rounded-xl border bg-card/50 p-3.5 transition-all hover:border-primary/20 hover:bg-card hover:shadow-sm"
+                      className="group flex items-center gap-3 rounded-xl border bg-card/50 p-3.5 transition-all hover:border-orange-200 dark:hover:border-orange-800 hover:bg-card hover:shadow-sm"
                     >
-                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-xs font-bold text-primary">
+                      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/30 text-xs font-bold text-orange-700 dark:text-orange-300">
                         {phase.step}
                       </span>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-semibold">{phase.name}</p>
                         <p className="text-xs text-muted-foreground truncate">{phase.detail}</p>
                       </div>
-                      <Icon className="h-4 w-4 text-muted-foreground/40 group-hover:text-primary transition-colors" />
+                      <Icon className="h-4 w-4 text-muted-foreground/40 group-hover:text-orange-500 transition-colors" />
                     </div>
                   );
                 })}
@@ -244,15 +233,15 @@ export default function LandingExperience({ onStart }: LandingExperienceProps) {
             {highlights.map((item) => {
               const Icon = item.icon;
               return (
-            <motion.article
-              key={item.title}
-              className="card-hover relative overflow-hidden p-5"
-              variants={staggerItem}
-              whileHover={{ y: -4, transition: { type: 'spring', stiffness: 300 } }}
-            >
-                  <div className={`absolute inset-0 opacity-50 bg-gradient-to-br ${item.gradient}`} />
+                <motion.article
+                  key={item.title}
+                  className="card-hover relative overflow-hidden p-5 border border-orange-100 dark:border-orange-800/30 bg-white dark:bg-gray-900"
+                  variants={staggerItem}
+                  whileHover={{ y: -4, transition: { type: 'spring', stiffness: 300 } }}
+                >
+                  <div className="absolute inset-0 opacity-40 bg-gradient-to-br from-orange-500/10 via-transparent to-orange-400/5" />
                   <div className="relative flex items-start gap-4">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400">
                       <Icon className="h-5 w-5" />
                     </div>
                     <div>
@@ -270,10 +259,10 @@ export default function LandingExperience({ onStart }: LandingExperienceProps) {
 
         {/* CTA */}
         <ScrollReveal variants={scaleIn}>
-          <section className="mt-20 md:mt-28 card gradient-border overflow-hidden">
+          <section className="mt-20 md:mt-28 card gradient-border overflow-hidden bg-gradient-to-r from-orange-50 to-orange-100/50 dark:from-orange-950/20 dark:to-orange-900/20">
             <div className="relative p-8 md:p-12">
-              <div className="absolute -right-20 -top-20 h-60 w-60 rounded-full bg-primary/5 blur-3xl" />
-              <div className="absolute -bottom-20 -left-10 h-44 w-44 rounded-full bg-emerald-500/5 blur-3xl" />
+              <div className="absolute -right-20 -top-20 h-60 w-60 rounded-full bg-orange-500/10 blur-3xl" />
+              <div className="absolute -bottom-20 -left-10 h-44 w-44 rounded-full bg-orange-400/5 blur-3xl" />
 
               <div className="relative grid gap-8 md:grid-cols-[1fr_auto] md:items-center">
                 <motion.div
@@ -310,7 +299,7 @@ export default function LandingExperience({ onStart }: LandingExperienceProps) {
           <footer className="mt-20 border-t border-border/50 pt-8 pb-4">
             <div className="flex flex-col items-center justify-between gap-4 md:flex-row">
               <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                <Bot className="h-4 w-4" />
+                <Bot className="h-4 w-4 text-orange-500" />
                 <span>Parameter Efficient Fine-Tuning v1.0</span>
               </div>
               <p className="text-sm text-muted-foreground">

@@ -90,9 +90,9 @@ Base Model (frozen)
 |---|---|
 | **Fine-Tuning** | QLoRA, PEFT, bitsandbytes |
 | **Model Framework** | PyTorch, HuggingFace Transformers |
-| **Backend** | FastAPI, WebSockets |
+| **Backend** | FastAPI, WebSockets, modular router architecture |
 | **Frontend** | Next.js, TypeScript |
-| **Streaming** | Server-Sent Events |
+| **Streaming** | Server-Sent Events, WebSocket training progress |
 
 ---
 
@@ -214,9 +214,12 @@ Both runs: seed 42, 3 epochs, LR 5e-5, cosine scheduler. Only `use_lora` differe
 | **Smart Hyperparameters** | Automated defaults based on model size and dataset |
 | **Real-Time Monitoring** | Live loss curves, VRAM usage, and throughput via WebSockets |
 | **Dataset Validation** | Automated format checking and preprocessing |
-| **Artifact Export** | Merged model weights, LoRA adapters, and inference configs |
+| **Experiment Evaluation** | Automated perplexity, loss, and model card generation post-training |
+| **Artifact Export** | Merged model weights, LoRA adapters, inference configs, and standalone fine-tuning scripts |
 | **Model Browser** | Search and load 1000+ HuggingFace models directly |
 | **Multi-Format Support** | Instruction tuning, completion, and chat template formats |
+| **Path Traversal Prevention** | Secure file access with validated paths across all endpoints |
+| **Modular API** | Clean router-based architecture with centralized dependency injection |
 
 ---
 
@@ -226,10 +229,13 @@ Both runs: seed 42, 3 epochs, LR 5e-5, cosine scheduler. Only `use_lora` differe
 git clone https://github.com/royxforge/parameter-efficient-fine-tuning.git
 cd parameter-efficient-fine-tuning
 
-# Backend
+# Backend (from project root)
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
+
+# Or install backend dependencies directly
+cd backend && pip install -r requirements.txt && cd ..
 
 # Frontend
 cd frontend && npm install
@@ -237,12 +243,14 @@ cd frontend && npm install
 
 **Core dependencies:** PyTorch · HuggingFace Transformers · PEFT · bitsandbytes · FastAPI · Next.js
 
+> **Note:** A root-level `requirements.txt` is provided for convenience — it forwards to `backend/requirements.txt`.
+
 ---
 
 ## Usage
 
 ```bash
-# Terminal 1 - backend
+# Terminal 1 - backend (from project root)
 python run.py
 
 # Terminal 2 - frontend
@@ -263,7 +271,7 @@ Open `http://localhost:3000` and launch the workspace. The platform loads any Hu
 
 **04 Train** - Real-time dashboard with live loss curves, VRAM profiling, and throughput metrics streamed via WebSockets.
 
-**05 Ship** - Export merged model weights, standalone LoRA adapters, and inference code templates ready for deployment.
+**05 Ship** - Export merged model weights, standalone LoRA adapters, inference code templates, and standalone fine-tuning scripts ready for deployment. Review experiment evaluation metrics and model cards generated automatically after training.
 
 ---
 
@@ -274,15 +282,25 @@ parameter-efficient-fine-tuning/
 |
 +-- run.py                   # Entry point
 +-- backend/                 # FastAPI server, training loop, QLoRA logic
-|   +-- main.py              # API endpoints
+|   +-- main.py              # App initialization and router registration
+|   +-- routers/             # Modular API routers
+|   |   +-- models.py        # Model analysis endpoints
+|   |   +-- datasets.py      # Dataset upload and validation
+|   |   +-- training.py      # Training lifecycle and WebSocket
+|   |   +-- quantization.py  # Quantization endpoints
+|   |   +-- codegen.py       # Code generation
+|   |   +-- experiments.py   # Experiment evaluation and metadata
+|   |   +-- deps.py          # Centralized service dependencies
 |   +-- services/            # Training, model analysis, hyperparameter optimization
 |   +-- models/schemas.py    # Pydantic request/response types
-|   +-- utils/               # Compute estimation, HF utilities, logging
+|   +-- utils/               # Compute estimation, HF utilities, logging, security
+|   +-- tests/               # Unit tests (API, training service, schemas, datasets)
 +-- frontend/                # Next.js dashboard, WebSocket client
 +-- storage/
 |   +-- outputs/             # Per-job model artifacts and metrics
 |   +-- experiments/         # Loss plots and per-step logs
-+-- requirements.txt
++-- requirements.txt         # Root-level dependency file
++-- CITATION.cff             # Citation metadata
 +-- LICENSE
 ```
 
