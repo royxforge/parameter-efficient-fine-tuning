@@ -5,6 +5,7 @@ os.environ["TORCH_COMPILE_DISABLE"] = "1"
 os.environ["TORCHDYNAMO_DISABLE"] = "1"
 
 import asyncio
+import secrets
 import uuid
 import threading
 from typing import Dict, Any, Optional
@@ -52,6 +53,24 @@ class TrainingService:
         torch.backends.cudnn.deterministic = True
         torch.backends.cudnn.benchmark = False
 
+    def get_job_access_token(self, job_id: str) -> Optional[str]:
+        """Return the job's WebSocket access token, or None if unknown."""
+        job_state = self.active_jobs.get(job_id)
+        if job_state is None:
+            return None
+        return job_state.get("access_token")
+
+    def verify_job_token(self, job_id: str, token: Optional[str]) -> bool:
+        """Constant-time check that *token* is allowed to stream *job_id*.
+
+        Unknown jobs return False as well, so an unauthorised caller cannot
+        probe which job ids exist.
+        """
+        expected = self.get_job_access_token(job_id)
+        if not expected or not token:
+            return False
+        return secrets.compare_digest(str(token), str(expected))
+
     async def start_training(
         self,
         config: TrainingConfig,
@@ -81,6 +100,10 @@ class TrainingService:
             "output_dir": str(job_dir),
             "gpu_memory_mb": None,
             "gpu_utilization": None,
+            # Per-job bearer token for the progress WebSocket. Job ids alone
+            # are guessable enough for a local API that progress (loss curves,
+            # checkpoint paths, GPU stats) must not stream to anyone who asks.
+            "access_token": secrets.token_urlsafe(32),
         }
 
         self.active_jobs[job_id] = job_state

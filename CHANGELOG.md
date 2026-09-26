@@ -6,6 +6,15 @@ The format follows the principles of [Keep a Changelog](https://keepachangelog.c
 
 ---
 
+## [Unreleased]
+
+### Security
+
+- **Path/RCE guards**: quantized output paths resolve beneath the models directory (`safe_child_path` + `is_relative_to`); dataset loading uses `trust_remote_code=False` with an allowlist and rows are serialized via `Dataset.to_json` (stringified labels/bboxes no longer corrupt records); the training export zip is size-capped and streamed; error responses return opaque job IDs instead of raw exception strings (paths/tokens); the WebSocket progress loop honours client disconnects.
+- **Config validation**: `TrainingConfig` is now `extra="forbid"` with typed `task_type`/`quantization` enums, range constraints (`learning_rate > 0`, `batch_size >= 1`, `validation_split in [0,1)`, …), a `model_id` pattern, and mutual-exclusion validators (`load_in_4bit` vs `load_in_8bit`, `fp16` vs `bf16`). Unknown fields previously passed through silently.
+
+---
+
 ## [0.8.0] - 2026-08-29
 
 ### Added

@@ -3,7 +3,7 @@
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class ComputeTier(str, Enum):
@@ -91,33 +91,37 @@ class LoRAConfig(BaseModel):
 
 
 class TrainingConfig(BaseModel):
-    model_config = ConfigDict(extra="allow")
+    # extra="forbid": unknown fields are almost always typos or a client
+    # sending a stale schema; silently ignoring them let misconfigured runs
+    # proceed with defaults. extra="allow" also let arbitrary payloads into
+    # the config dict that is persisted with the job.
+    model_config = ConfigDict(extra="forbid")
 
-    model_id: str
-    dataset_id: str
-    task_type: TaskType | str = TaskType.TEXT_GENERATION
-    learning_rate: float = 2e-4
-    batch_size: int = 4
-    gradient_accumulation_steps: int = 1
-    num_epochs: int = 3
-    warmup_steps: int = 50
+    model_id: str = Field(..., min_length=1, pattern=r"^[A-Za-z0-9._/\-]+$")
+    dataset_id: str = Field(..., min_length=1)
+    task_type: TaskType = TaskType.TEXT_GENERATION
+    learning_rate: float = Field(default=2e-4, gt=0, le=1.0)
+    batch_size: int = Field(default=4, ge=1, le=1024)
+    gradient_accumulation_steps: int = Field(default=1, ge=1, le=1024)
+    num_epochs: int = Field(default=3, ge=1, le=1000)
+    warmup_steps: int = Field(default=50, ge=0)
     optimizer: str = "paged_adamw_8bit"
     scheduler: str = "cosine"
-    weight_decay: float = 0.01
-    max_grad_norm: float = 1.0
+    weight_decay: float = Field(default=0.01, ge=0.0, le=1.0)
+    max_grad_norm: float = Field(default=1.0, gt=0)
     use_lora: bool = True
     lora_config: Optional[LoRAConfig] = None
-    quantization: Optional[str] = "4bit"
+    quantization: Optional[QuantizationMethod] = QuantizationMethod.BITS_4
     load_in_4bit: bool = True
     load_in_8bit: bool = False
     fp16: bool = True
     bf16: bool = False
     gradient_checkpointing: bool = True
-    max_seq_length: int = 512
-    validation_split: float = 0.1
-    logging_steps: int = 10
-    save_steps: int = 100
-    eval_steps: int = 100
+    max_seq_length: int = Field(default=512, ge=1, le=1_000_000)
+    validation_split: float = Field(default=0.1, ge=0.0, lt=1.0)
+    logging_steps: int = Field(default=10, ge=1)
+    save_steps: int = Field(default=100, ge=1)
+    eval_steps: int = Field(default=100, ge=1)
 
     seed: int = 42
     qlora: bool = True
@@ -125,9 +129,29 @@ class TrainingConfig(BaseModel):
     bnb_4bit_quant_type: str = "nf4"
     bnb_4bit_use_double_quant: bool = True
     use_paged_optimizers: bool = True
-    save_total_limit: int = 3
+    save_total_limit: int = Field(default=3, ge=1)
     group_by_length: bool = True
     report_to: List[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def _validate_quantization_consistency(self) -> "TrainingConfig":
+        """Reject combinations that bitsandbytes/transformers cannot apply."""
+        if self.load_in_4bit and self.load_in_8bit:
+            raise ValueError(
+                "load_in_4bit and load_in_8bit are mutually exclusive."
+            )
+        if self.fp16 and self.bf16:
+            raise ValueError("fp16 and bf16 are mutually exclusive.")
+        if self.quantization is None and (self.load_in_4bit or self.load_in_8bit):
+            # load_in_4bit defaults to True, so a None quantization step with
+            # the default flags still asks bitsandbytes to load quantized;
+            # require the pair to agree instead of silently ignoring one.
+            if self.qlora:
+                raise ValueError(
+                    "quantization=None is inconsistent with qlora=True and "
+                    "load_in_4bit=True; set quantization or disable both."
+                )
+        return self
 
 
 class HyperparameterRequest(BaseModel):
@@ -157,6 +181,9 @@ class JobResponse(BaseModel):
     status: str
     message: str
     estimated_duration_minutes: Optional[int] = None
+    # Required to subscribe to /ws/training/{job_id}; returned only from the
+    # creation call so the stream is not open to anyone who guesses a job id.
+    access_token: Optional[str] = None
 
 
 class TrainingMetrics(BaseModel):

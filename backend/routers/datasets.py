@@ -56,7 +56,9 @@ async def upload_dataset(
                 from datasets import load_dataset
                 logger.info(f"Loading HuggingFace dataset: {dataset_id}")
 
-                hf_dataset = load_dataset(dataset_id, split="train", trust_remote_code=True)
+                # trust_remote_code must stay False: a malicious dataset repo
+                # would otherwise execute arbitrary code in the server process.
+                hf_dataset = load_dataset(dataset_id, split="train", trust_remote_code=False)
 
                 local_path = safe_child_path(
                     Path(settings.datasets_dir),
@@ -66,7 +68,7 @@ async def upload_dataset(
 
                 with open(local_path, 'w', encoding='utf-8') as f:
                     for example in hf_dataset:
-                        f.write(json.dumps({k: str(v) for k, v in example.items()}) + '\n')
+                        f.write(json.dumps(example, default=str) + '\n')
 
                 logger.info(f"Saved HF dataset to {local_path} ({len(hf_dataset)} samples)")
 

@@ -104,3 +104,23 @@
 2026-07-20 17:21:28 | ERROR    | services.dataset_processor:validate_dataset:71 - Dataset validation failed: Unsupported format: xml
 2026-07-20 17:21:28 | INFO     | services.dataset_processor:create_train_val_split:222 - Split dataset: 4 train, 1 validation
 2026-07-20 17:21:28 | INFO     | services.dataset_processor:save_dataset:243 - Dataset saved to storage\datasets\test_roundtrip.json
+2026-09-24 14:33:52 | INFO     | utils.logger:setup_logger:34 - Logger initialized - Level: INFO, File: logs\app.log
+2026-09-24 14:33:55 | INFO     | services.dataset_processor:validate_dataset:26 - Validating dataset: C:\Users\Roy\AppData\Local\Temp\tmp87i17gpk.json
+2026-09-24 14:33:55 | INFO     | services.dataset_processor:validate_dataset:57 - Dataset validated: 5 samples, avg 4 tokens
+2026-09-24 14:33:55 | INFO     | services.dataset_processor:validate_dataset:26 - Validating dataset: C:\Users\Roy\AppData\Local\Temp\tmpx7ux3brs.jsonl
+2026-09-24 14:33:55 | INFO     | services.dataset_processor:validate_dataset:57 - Dataset validated: 2 samples, avg 4 tokens
+2026-09-24 14:33:55 | INFO     | services.dataset_processor:validate_dataset:26 - Validating dataset: C:\Users\Roy\AppData\Local\Temp\tmpz47tl4p7.json
+2026-09-24 14:33:55 | INFO     | services.dataset_processor:validate_dataset:57 - Dataset validated: 2 samples, avg 6 tokens
+2026-09-24 14:33:55 | INFO     | services.dataset_processor:validate_dataset:26 - Validating dataset: C:\Users\Roy\AppData\Local\Temp\tmpj8xvfa21.json
+2026-09-24 14:33:55 | INFO     | services.dataset_processor:validate_dataset:57 - Dataset validated: 500 samples, avg 1 tokens
+2026-09-24 14:33:55 | INFO     | services.dataset_processor:validate_dataset:26 - Validating dataset: C:\Users\Roy\AppData\Local\Temp\tmpujtcx2sm.json
+2026-09-24 14:33:55 | INFO     | services.dataset_processor:validate_dataset:57 - Dataset validated: 5 samples, avg 4 tokens
+2026-09-24 14:33:55 | INFO     | services.dataset_processor:validate_dataset:26 - Validating dataset: C:\Users\Roy\AppData\Local\Temp\tmpg6yjrh6j.txt
+2026-09-24 14:33:55 | ERROR    | services.dataset_processor:validate_dataset:61 - Dataset validation failed: Unsupported format: xml
+2026-09-24 14:33:55 | INFO     | services.dataset_processor:create_train_val_split:237 - Split dataset: 4 train, 1 validation
+2026-09-24 14:33:55 | INFO     | services.dataset_processor:save_dataset:258 - Dataset saved to storage\datasets\test_roundtrip.json
+2026-09-24 14:33:56 | INFO     | services.training_service:cancel_training:172 - Training job cancelled: 12c83a7e-2758-4669-a581-3badd822cb88
+2026-09-24 14:33:56 | INFO     | services.training_service:cleanup_job:193 - Job cleaned up: 0a9467b2-8eb7-4c0d-8ef2-6f308281c71c
+2026-09-26 10:21:46 | INFO     | utils.logger:setup_logger:34 - Logger initialized - Level: INFO, File: logs\app.log
+2026-09-26 10:21:47 | INFO     | services.training_service:cancel_training:195 - Training job cancelled: eaf41088-e0f2-4d24-ad6e-1409c2e923c8
+2026-09-26 10:21:47 | INFO     | services.training_service:cleanup_job:216 - Job cleaned up: 0378a562-3bc8-4200-82e4-359dca705487

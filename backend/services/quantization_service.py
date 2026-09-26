@@ -2,6 +2,7 @@ from typing import Dict, Any
 from pathlib import Path
 from models.schemas import QuantizationResult, QuantizationMethod
 from utils.logger import get_logger
+from utils.security import safe_child_path
 from config import settings
 
 logger = get_logger(__name__)
@@ -21,13 +22,16 @@ class QuantizationService:
         logger.info(f"Starting quantization: {model_path} with {method} at {bits}-bit")
         
         try:
-            model_dir = Path(model_path)
+            model_dir = safe_child_path(self.models_dir, model_path)
             if not model_dir.exists():
                 raise ValueError(f"Model path does not exist: {model_path}")
             
             original_size_mb = self._calculate_directory_size(model_dir)
             
-            output_dir = model_dir.parent / f"{model_dir.name}_quantized_{method.value}_{bits}bit"
+            output_dir = safe_child_path(
+                model_dir.parent,
+                f"{model_dir.name}_quantized_{method.value}_{bits}bit",
+            )
             output_dir.mkdir(parents=True, exist_ok=True)
             
             if method == QuantizationMethod.BITS_4 or method == QuantizationMethod.BITS_8:

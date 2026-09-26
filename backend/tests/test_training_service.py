@@ -96,3 +96,15 @@ class TestJobManagement:
         service.cleanup_job(job_id)
         assert job_id not in service.active_jobs
         assert job_id not in service.cancel_events
+
+    def test_verify_job_token_enforces_authentication(self, service, config):
+        """Token verification must be constant-time and reject wrong/missing tokens."""
+        job_id = _seed_job(service, config)
+        service.active_jobs[job_id]["access_token"] = "valid_secret_token"
+
+        assert service.verify_job_token(job_id, "valid_secret_token") is True
+        assert service.verify_job_token(job_id, "wrong_token") is False
+        assert service.verify_job_token(job_id, None) is False
+        assert service.verify_job_token(job_id, "") is False
+        # Unknown job returns False (prevents probing which jobs exist)
+        assert service.verify_job_token("unknown_job_id", "valid_secret_token") is False

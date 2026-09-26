@@ -1,10 +1,11 @@
 import asyncio
 import io
+import uuid
 import zipfile
 from pathlib import Path
 from typing import List
 
-from fastapi import APIRouter, BackgroundTasks, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi import APIRouter, BackgroundTasks, HTTPException, Query, WebSocket, WebSocketDisconnect, status
 from fastapi.responses import FileResponse, StreamingResponse
 
 from models.schemas import (
@@ -20,6 +21,16 @@ from config import settings
 logger = get_logger(__name__)
 
 router = APIRouter()
+
+# Download packaging limits: an unbounded rglob zip is a disk/CPU DoS vector.
+MAX_PACKAGE_BYTES = 2 * 1024 * 1024 * 1024
+# Hard cap on a progress-stream lifetime so a socket cannot poll forever.
+MAX_WS_SECONDS = 30 * 60
+
+
+def _error_id() -> str:
+    """Short correlation id so clients can reference a logged failure."""
+    return uuid.uuid4().hex[:8]
 
 
 class ConnectionManager:
@@ -71,7 +82,8 @@ async def start_training(request: StartTrainingRequest, background_tasks: Backgr
             job_id=job_id,
             status="queued",
             message="Training job created successfully",
-            estimated_duration_minutes=30
+            estimated_duration_minutes=30,
+            access_token=training_service.get_job_access_token(job_id),
         )
 
     except Exception as e:
@@ -206,8 +218,12 @@ async def download_model(job_id: str):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Failed to download model: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=str(e))
+        error_id = _error_id()
+        logger.error(f"Failed to download model (error_id={error_id}): {e}", exc_info=True)
+        raise HTTPException(
+            status_code=500,
+            detail=f"Model download failed (error_id={error_id})"
+        )
 
 
 @router.get("/api/download-package/{job_id}")
@@ -221,9 +237,16 @@ async def download_package(job_id: str):
 
         zip_buffer = io.BytesIO()
 
+        total_bytes = 0
         with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
             for file_path in job_dir.rglob('*'):
                 if file_path.is_file():
+                    total_bytes += file_path.stat().st_size
+                    if total_bytes > MAX_PACKAGE_BYTES:
+                        raise HTTPException(
+                            status_code=413,
+                            detail="Model package exceeds the 2GB download limit"
+                        )
                     arcname = file_path.relative_to(job_dir)
                     zip_file.write(file_path, arcname)
 
@@ -240,8 +263,12 @@ async def download_package(job_id: str):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"Package download failed: {e}")
-        raise HTTPException(status_code=400, detail=str(e))
+        error_id = _error_id()
+        logger.error(f"Package download failed (error_id={error_id}): {e}", exc_info=True)
+        raise HTTPException(
+            status_code=400,
+            detail=f"Package download failed (error_id={error_id})"
+        )
 
 
 @router.get("/api/download-file/{job_id}/{filename}")
@@ -262,12 +289,31 @@ async def download_file(job_id: str, filename: str):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"File download failed: {e}")
-        raise HTTPException(status_code=400, detail=str(e))
+        error_id = _error_id()
+        logger.error(f"File download failed (error_id={error_id}): {e}", exc_info=True)
+        raise HTTPException(
+            status_code=400,
+            detail=f"File download failed (error_id={error_id})"
+        )
 
 
 @router.websocket("/ws/training/{job_id}")
-async def training_websocket(websocket: WebSocket, job_id: str):
+async def training_websocket(
+    websocket: WebSocket,
+    job_id: str,
+    token: str | None = Query(default=None),
+):
+    """Stream training progress for a job.
+
+    Requires the per-job ``access_token`` returned by ``/api/start-training``.
+    Job ids are not secrets, and the stream carries loss values, checkpoint
+    paths and GPU stats, so unauthenticated subscribers are closed with 1008.
+    """
+    if not training_service.verify_job_token(job_id, token):
+        logger.warning(f"Rejected unauthenticated WebSocket for job: {job_id}")
+        await websocket.close(code=status.WS_1008_POLICY_VIOLATION)
+        return
+
     await manager.connect(job_id, websocket)
 
     try:
@@ -284,7 +330,14 @@ async def training_websocket(websocket: WebSocket, job_id: str):
             })
             return
 
+        deadline = asyncio.get_running_loop().time() + MAX_WS_SECONDS
         while True:
+            if asyncio.get_running_loop().time() > deadline:
+                await websocket.send_json({
+                    "type": "error",
+                    "message": "Progress stream timed out",
+                })
+                break
             try:
                 progress = training_service.get_training_progress(job_id)
 
