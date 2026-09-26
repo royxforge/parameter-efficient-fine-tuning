@@ -243,7 +243,7 @@ cd frontend && npm install
 
 **Core dependencies:** PyTorch · HuggingFace Transformers · PEFT · bitsandbytes · FastAPI · Next.js
 
-> **Note:** A root-level `requirements.txt` is provided for convenience — it forwards to `backend/requirements.txt`.
+> **Note:** A root-level `requirements.txt` is provided for convenience -- it forwards to `backend/requirements.txt`.
 
 ---
 
