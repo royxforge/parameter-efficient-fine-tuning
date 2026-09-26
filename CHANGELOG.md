@@ -8,6 +8,8 @@ The format follows the principles of [Keep a Changelog](https://keepachangelog.c
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-09-26
+
 ### Security
 
 - **Path/RCE guards**: quantized output paths resolve beneath the models directory (`safe_child_path` + `is_relative_to`); dataset loading uses `trust_remote_code=False` with an allowlist and rows are serialized via `Dataset.to_json` (stringified labels/bboxes no longer corrupt records); the training export zip is size-capped and streamed; error responses return opaque job IDs instead of raw exception strings (paths/tokens); the WebSocket progress loop honours client disconnects.
