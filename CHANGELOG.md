@@ -8,6 +8,10 @@ The format follows the principles of [Keep a Changelog](https://keepachangelog.c
 
 ## [Unreleased]
 
+### Fixed
+
+- **Version consistency**: the FastAPI app metadata advertised `0.8.0` while the release was `0.9.0`.
+
 ## [0.9.0] - 2026-09-26
 
 ### Security
