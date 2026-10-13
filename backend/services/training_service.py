@@ -6,6 +6,7 @@ os.environ["TORCHDYNAMO_DISABLE"] = "1"
 
 import asyncio
 import secrets
+import shutil
 import uuid
 import threading
 from typing import Dict, Any, Optional
@@ -31,6 +32,14 @@ logger = get_logger(__name__)
 
 class TrainingCancelledError(Exception):
     pass
+
+
+class JobNotFoundError(ValueError):
+    """Raised when a job id is unknown in memory and has no artifacts on disk."""
+
+
+class JobActiveError(ValueError):
+    """Raised when a job must be cancelled before it can be deleted."""
 
 
 class TrainingService:
@@ -214,6 +223,94 @@ class TrainingService:
             del self.active_jobs[job_id]
             self.cancel_events.pop(job_id, None)
             logger.info(f"Job cleaned up: {job_id}")
+
+    def _job_artifact_dirs(self, job_id: str) -> list[Path]:
+        """Resolve the on-disk artifact directories that belong to *job_id*.
+
+        The id reaches this method from an HTTP path parameter, so containment
+        is verified against each storage root before anything is deleted.
+        """
+        if not job_id or job_id in {".", ".."} or "/" in job_id or "\\" in job_id:
+            raise ValueError(f"Invalid job id: {job_id!r}")
+
+        directories: list[Path] = []
+        for root in (self.output_dir, self.experiments_dir):
+            candidate = (root / job_id).resolve()
+            if not candidate.is_relative_to(root.resolve()) or candidate == root.resolve():
+                raise ValueError(f"Invalid job id: {job_id!r}")
+            directories.append(candidate)
+        return directories
+
+    def delete_job(self, job_id: str, purge_artifacts: bool = True) -> Dict[str, Any]:
+        """Delete a job's in-memory state and reclaim its on-disk artifacts.
+
+        Checkpoints, adapters and experiment logs accumulate under the storage
+        roots and are never reclaimed automatically, so long-running deployments
+        need an explicit way to free that space. Job state itself is in-memory
+        only, which means artifacts can outlive a backend restart — those
+        orphans are deletable here too.
+
+        Running jobs are refused: removing files underneath a live trainer
+        produces corrupt or half-written checkpoints, so the job has to be
+        cancelled first.
+
+        Returns:
+            Summary with ``removed_state``, ``removed_dirs``, ``removed_files``
+            and ``freed_bytes``.
+
+        Raises:
+            JobActiveError: The job is queued, initializing or running.
+            JobNotFoundError: The id matches no in-memory job and no artifacts.
+            ValueError: The job id is not a safe path component.
+        """
+        job_state = self.active_jobs.get(job_id)
+        if job_state is not None and job_state["status"] in (
+            TrainingStatus.QUEUED,
+            TrainingStatus.INITIALIZING,
+            TrainingStatus.RUNNING,
+        ):
+            raise JobActiveError(
+                f"Cannot delete job in status: {job_state['status']}. Cancel it first."
+            )
+
+        directories = self._job_artifact_dirs(job_id)
+
+        removed_dirs: list[str] = []
+        removed_files = 0
+        freed_bytes = 0
+        if purge_artifacts:
+            for directory in directories:
+                if not directory.is_dir():
+                    continue
+                for path in directory.rglob("*"):
+                    if path.is_file():
+                        removed_files += 1
+                        try:
+                            freed_bytes += path.stat().st_size
+                        except OSError:
+                            # A file that disappears mid-walk still counts as removed.
+                            pass
+                shutil.rmtree(directory, ignore_errors=True)
+                if not directory.exists():
+                    removed_dirs.append(str(directory))
+
+        removed_state = self.active_jobs.pop(job_id, None) is not None
+        self.cancel_events.pop(job_id, None)
+
+        if not removed_state and not removed_dirs:
+            raise JobNotFoundError(f"Job not found: {job_id}")
+
+        logger.info(
+            f"Job deleted: {job_id} (state={removed_state}, dirs={len(removed_dirs)}, "
+            f"files={removed_files}, freed={freed_bytes} bytes)"
+        )
+        return {
+            "job_id": job_id,
+            "removed_state": removed_state,
+            "removed_dirs": removed_dirs,
+            "removed_files": removed_files,
+            "freed_bytes": freed_bytes,
+        }
 
     def _run_actual_training(self, job_id: str):
         if hasattr(torch, 'compile'):

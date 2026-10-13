@@ -8,7 +8,7 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from models.schemas import TrainingConfig, TrainingStatus
-from services.training_service import TrainingService
+from services.training_service import JobActiveError, JobNotFoundError, TrainingService
 
 
 @pytest.fixture
@@ -108,3 +108,88 @@ class TestJobManagement:
         assert service.verify_job_token(job_id, "") is False
         # Unknown job returns False (prevents probing which jobs exist)
         assert service.verify_job_token("unknown_job_id", "valid_secret_token") is False
+
+
+class TestJobDeletion:
+    """Artifacts pile up on disk; deleting a job must reclaim and forget them."""
+
+    def test_delete_job_removes_state_and_artifacts(self, service, config):
+        import threading
+
+        job_id = _seed_job(service, config)
+        service.cancel_events[job_id] = threading.Event()
+        service.active_jobs[job_id]["status"] = TrainingStatus.COMPLETED
+
+        job_dir = service.output_dir / job_id
+        (job_dir / "final_model").mkdir(parents=True, exist_ok=True)
+        (job_dir / "final_model" / "adapter.bin").write_bytes(b"x" * 512)
+        experiment_dir = service.experiments_dir / job_id
+        experiment_dir.mkdir(parents=True, exist_ok=True)
+        (experiment_dir / "metrics.json").write_text("{}", encoding="utf-8")
+
+        summary = service.delete_job(job_id)
+
+        assert summary["removed_state"] is True
+        assert summary["removed_files"] == 2
+        assert summary["freed_bytes"] == 512 + len("{}")
+        assert len(summary["removed_dirs"]) == 2
+        assert not job_dir.exists()
+        assert not experiment_dir.exists()
+        assert job_id not in service.active_jobs
+        assert job_id not in service.cancel_events
+
+    def test_delete_running_job_is_refused(self, service, config):
+        job_id = _seed_job(service, config)
+        service.active_jobs[job_id]["status"] = TrainingStatus.RUNNING
+
+        with pytest.raises(JobActiveError):
+            service.delete_job(job_id)
+
+        # Refusing must leave both the job record and its files untouched.
+        assert job_id in service.active_jobs
+        assert (service.output_dir / job_id).exists()
+
+    def test_delete_unknown_job_raises_not_found(self, service):
+        with pytest.raises(JobNotFoundError):
+            service.delete_job("0f0f0f0f-unknown")
+
+    def test_delete_without_purge_keeps_artifacts(self, service, config):
+        job_id = _seed_job(service, config)
+        service.active_jobs[job_id]["status"] = TrainingStatus.COMPLETED
+        job_dir = service.output_dir / job_id
+        (job_dir / "weights.bin").write_bytes(b"x" * 16)
+
+        summary = service.delete_job(job_id, purge_artifacts=False)
+
+        assert summary["removed_state"] is True
+        assert summary["removed_dirs"] == []
+        assert (job_dir / "weights.bin").exists()
+        assert job_id not in service.active_jobs
+
+    def test_delete_orphaned_artifacts_after_restart(self, service):
+        """Job state is in-memory, so a restart leaves artifacts with no record."""
+        orphan_id = "11111111-2222-3333-4444-555555555555"
+        orphan_dir = service.output_dir / orphan_id
+        orphan_dir.mkdir(parents=True, exist_ok=True)
+        (orphan_dir / "checkpoint.bin").write_bytes(b"y" * 64)
+
+        summary = service.delete_job(orphan_id)
+
+        assert summary["removed_state"] is False
+        assert summary["removed_files"] == 1
+        assert summary["freed_bytes"] == 64
+        assert not orphan_dir.exists()
+
+    @pytest.mark.parametrize("bad_id", ["../..", "..", "", "a/b", "a\\b"])
+    def test_delete_rejects_unsafe_job_ids(self, service, bad_id):
+        with pytest.raises(ValueError):
+            service.delete_job(bad_id)
+
+    def test_delete_cancelled_job_is_allowed(self, service, config):
+        job_id = _seed_job(service, config)
+        service.active_jobs[job_id]["status"] = TrainingStatus.CANCELLED
+
+        summary = service.delete_job(job_id)
+
+        assert summary["removed_state"] is True
+        assert job_id not in service.active_jobs

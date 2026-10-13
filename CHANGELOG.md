@@ -8,6 +8,12 @@ The format follows the principles of [Keep a Changelog](https://keepachangelog.c
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-10-13
+
+### Added
+
+- **`DELETE /api/training-jobs/{job_id}`**: delete a job and reclaim the disk space its artifacts occupy. Cancelling a job only stops training; checkpoints, adapters, merged models and experiment logs stayed on disk forever, and job state lives in memory only, so artifacts also survived a restart as unreachable orphans. The endpoint removes the job record under `storage/outputs/<job_id>` and `storage/experiments/<job_id>`, and returns what it freed (`removed_state`, `removed_dirs`, `removed_files`, `freed_bytes`). Passing `purge_artifacts=false` drops only the in-memory record. A job that is queued, initializing or running is refused with **409** (the response says to cancel first) because deleting files underneath a live trainer produces corrupt checkpoints, and unknown ids are **404** so a client cannot mistake "nothing to delete" for success. Job ids are validated as path components before any removal, so a traversal-shaped id cannot escape the storage roots.
+
 ### Fixed
 
 - **Version consistency**: the FastAPI app metadata advertised `0.8.0` while the release was `0.9.0`.

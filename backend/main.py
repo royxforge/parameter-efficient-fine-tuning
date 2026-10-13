@@ -28,7 +28,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(
     title="LLM Fine-Tuning Pipeline API",
     description="Production-ready API for automated LLM fine-tuning",
-    version="0.9.0",
+    version="0.10.0",
     lifespan=lifespan
 )
 

@@ -14,6 +14,7 @@ from models.schemas import (
     DatasetInfo, ComputeTier, TaskType
 )
 from routers.deps import training_service, model_analyzer, hyperparameter_optimizer, dataset_processor
+from services.training_service import JobActiveError, JobNotFoundError
 from utils.logger import get_logger
 from utils.security import safe_child_path
 from config import settings
@@ -120,6 +121,35 @@ async def list_training_jobs():
         jobs = training_service.get_all_jobs()
         return {"jobs": jobs}
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/api/training-jobs/{job_id}")
+async def delete_training_job(
+    job_id: str,
+    purge_artifacts: bool = Query(
+        True, description="Also delete the job's on-disk checkpoints and experiment artifacts"
+    ),
+):
+    """Delete a training job and reclaim the disk space its artifacts occupy.
+
+    Cancelling a job only stops it; checkpoints, adapters and experiment logs
+    stay on disk unless they are deleted explicitly, and job state is kept in
+    memory only (so artifacts survive a restart as unreachable orphans). This
+    endpoint removes both, and reports how much space was freed.
+
+    Pass ``purge_artifacts=false`` to drop only the in-memory job record.
+    """
+    try:
+        return training_service.delete_job(job_id, purge_artifacts=purge_artifacts)
+    except JobActiveError as e:
+        raise HTTPException(status_code=409, detail=str(e))
+    except JobNotFoundError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        logger.error(f"Failed to delete job {job_id}: {e}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 

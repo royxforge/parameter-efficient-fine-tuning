@@ -141,3 +141,26 @@
 2026-09-26 13:50:46 | INFO     | services.dataset_processor:save_dataset:258 - Dataset saved to storage\datasets\test_roundtrip.json
 2026-09-26 13:50:46 | INFO     | services.training_service:cancel_training:195 - Training job cancelled: 5de51a79-46cb-4732-ad7b-079d2b64fdde
 2026-09-26 13:50:46 | INFO     | services.training_service:cleanup_job:216 - Job cleaned up: 169f1ef5-11d2-4a43-854b-c4f594d4a3f5
+2026-10-13 10:45:08 | INFO     | utils.logger:setup_logger:34 - Logger initialized - Level: INFO, File: logs\app.log
+2026-10-13 10:45:11 | INFO     | services.training_service:delete_job:303 - Job deleted: orphan-job-for-api-test (state=False, dirs=1, files=1, freed=256 bytes)
+2026-10-13 10:45:11 | INFO     | services.training_service:delete_job:303 - Job deleted: keep-artifacts-job (state=True, dirs=0, files=0, freed=0 bytes)
+2026-10-13 10:45:11 | INFO     | services.dataset_processor:validate_dataset:26 - Validating dataset: C:\Users\Roy\AppData\Local\Temp\tmpk8bepmvx.json
+2026-10-13 10:45:11 | INFO     | services.dataset_processor:validate_dataset:57 - Dataset validated: 5 samples, avg 4 tokens
+2026-10-13 10:45:11 | INFO     | services.dataset_processor:validate_dataset:26 - Validating dataset: C:\Users\Roy\AppData\Local\Temp\tmpat03wlbv.jsonl
+2026-10-13 10:45:11 | INFO     | services.dataset_processor:validate_dataset:57 - Dataset validated: 2 samples, avg 4 tokens
+2026-10-13 10:45:11 | INFO     | services.dataset_processor:validate_dataset:26 - Validating dataset: C:\Users\Roy\AppData\Local\Temp\tmpk_qfiio3.json
+2026-10-13 10:45:11 | INFO     | services.dataset_processor:validate_dataset:57 - Dataset validated: 2 samples, avg 6 tokens
+2026-10-13 10:45:11 | INFO     | services.dataset_processor:validate_dataset:26 - Validating dataset: C:\Users\Roy\AppData\Local\Temp\tmp2ptby264.json
+2026-10-13 10:45:11 | INFO     | services.dataset_processor:validate_dataset:57 - Dataset validated: 500 samples, avg 1 tokens
+2026-10-13 10:45:11 | INFO     | services.dataset_processor:validate_dataset:26 - Validating dataset: C:\Users\Roy\AppData\Local\Temp\tmplp0fjjfn.json
+2026-10-13 10:45:11 | INFO     | services.dataset_processor:validate_dataset:57 - Dataset validated: 5 samples, avg 4 tokens
+2026-10-13 10:45:11 | INFO     | services.dataset_processor:validate_dataset:26 - Validating dataset: C:\Users\Roy\AppData\Local\Temp\tmpk3jtjf4d.txt
+2026-10-13 10:45:11 | ERROR    | services.dataset_processor:validate_dataset:61 - Dataset validation failed: Unsupported format: xml
+2026-10-13 10:45:11 | INFO     | services.dataset_processor:create_train_val_split:237 - Split dataset: 4 train, 1 validation
+2026-10-13 10:45:11 | INFO     | services.dataset_processor:save_dataset:258 - Dataset saved to storage\datasets\test_roundtrip.json
+2026-10-13 10:45:12 | INFO     | services.training_service:cancel_training:204 - Training job cancelled: 10585694-4d36-450e-aad3-0c98893ad8a1
+2026-10-13 10:45:12 | INFO     | services.training_service:cleanup_job:225 - Job cleaned up: 16c6147f-8ccf-4a6c-baf5-100ecf082c64
+2026-10-13 10:45:12 | INFO     | services.training_service:delete_job:303 - Job deleted: 983b4779-5b2f-4b3f-a839-926c5339edf9 (state=True, dirs=2, files=2, freed=514 bytes)
+2026-10-13 10:45:12 | INFO     | services.training_service:delete_job:303 - Job deleted: b32334f2-4714-4039-a24f-8d6af4163bc8 (state=True, dirs=0, files=0, freed=0 bytes)
+2026-10-13 10:45:12 | INFO     | services.training_service:delete_job:303 - Job deleted: 11111111-2222-3333-4444-555555555555 (state=False, dirs=1, files=1, freed=64 bytes)
+2026-10-13 10:45:12 | INFO     | services.training_service:delete_job:303 - Job deleted: d715d881-e93c-4998-8e76-25da968c4d7e (state=True, dirs=1, files=0, freed=0 bytes)

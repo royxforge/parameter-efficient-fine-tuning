@@ -220,6 +220,7 @@ Both runs: seed 42, 3 epochs, LR 5e-5, cosine scheduler. Only `use_lora` differe
 | **Multi-Format Support** | Instruction tuning, completion, and chat template formats |
 | **Path Traversal Prevention** | Secure file access with validated paths across all endpoints |
 | **Modular API** | Clean router-based architecture with centralized dependency injection |
+| **Job Cleanup** | Delete a job and reclaim its checkpoints/adapters from disk (`DELETE /api/training-jobs/{job_id}`) |
 
 ---
 
@@ -272,6 +273,25 @@ Open `http://localhost:3000` and launch the workspace. The platform loads any Hu
 **04 Train** - Real-time dashboard with live loss curves, VRAM profiling, and throughput metrics streamed via WebSockets.
 
 **05 Ship** - Export merged model weights, standalone LoRA adapters, inference code templates, and standalone fine-tuning scripts ready for deployment. Review experiment evaluation metrics and model cards generated automatically after training.
+
+**Housekeeping - removing runs you no longer need.** Experiments are large
+(checkpoints, adapters, merged weights) and cancelling a job does not free any
+of it, so finished runs are deleted explicitly:
+
+```bash
+# Delete the job record and its artifacts, and see what was reclaimed
+curl -X DELETE http://localhost:8000/api/training-jobs/<job_id>
+# {"job_id": "...", "removed_state": true, "removed_dirs": [...],
+#  "removed_files": 42, "freed_bytes": 1782579200}
+
+# Drop only the in-memory record and keep the files
+curl -X DELETE "http://localhost:8000/api/training-jobs/<job_id>?purge_artifacts=false"
+```
+
+A job that is still queued/running returns `409` (cancel it first - deleting
+files under a live trainer corrupts the run); unknown ids return `404`. Because
+job state is in memory only, this also reclaims artifacts left behind by jobs
+that predate a backend restart.
 
 ---
 
