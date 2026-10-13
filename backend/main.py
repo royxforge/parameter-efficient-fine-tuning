@@ -52,7 +52,7 @@ app.include_router(experiments.router)
 async def root():
     return {
         "message": "LLM Fine-Tuning Pipeline API",
-        "version": "0.8.0",
+        "version": "0.10.0",
         "docs": "/docs",
         "status": "operational"
     }

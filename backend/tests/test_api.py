@@ -20,7 +20,9 @@ class TestHealthEndpoints:
         assert resp.status_code == 200
         body = resp.json()
         assert body["status"] == "operational"
-        assert "version" in body
+        # The root payload must advertise the release version, not a stale one.
+        assert body["version"] == app.version
+        assert body["version"] not in ("0.8.0", "0.9.0")
 
     def test_health_check(self):
         resp = client.get("/health")
