@@ -1,5 +1,5 @@
 # FastAPI and Server
-fastapi==0.109.0
+fastapi==0.162.0
 uvicorn[standard]==0.27.0
 python-multipart==0.0.6
 websockets==12.0
@@ -35,7 +35,7 @@ loguru>=0.7.0
 tqdm>=4.66.0
 
 # API and HTTP
-# httpx 0.28 removed Client(app=...), which starlette 0.35 (via fastapi==0.109.0)
+# httpx 0.28 removed Client(app=...), which starlette 0.35 (via fastapi==0.162.0)
 # still passes in TestClient -> TypeError on import of the test suite.
 httpx>=0.26.0,<0.28
 aiofiles>=23.2.0
