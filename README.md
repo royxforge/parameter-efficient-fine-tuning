@@ -6,10 +6,15 @@
   <img src="https://img.shields.io/badge/PyTorch-EE4C2C?style=flat-square&logo=pytorch&logoColor=white" />
   <img src="https://img.shields.io/badge/HuggingFace-1000%2B%20Models-FFD21E?style=flat-square&logo=huggingface&logoColor=black" />
   <img src="https://img.shields.io/badge/QLoRA-4bit%20NF4-14b8a6?style=flat-square" />
+  <a href="https://github.com/royxforge/parameter-efficient-fine-tuning/actions/workflows/ci.yml"><img src="https://github.com/royxforge/parameter-efficient-fine-tuning/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
   <img src="https://img.shields.io/badge/License-MIT-6366f1?style=flat-square" />
 </p>
 
-> Production-grade fine-tuning platform for large language models from 2B to 70B parameters. Implements QLoRA (4-bit NF4 quantization + LoRA adapters) to make fine-tuning accessible without enterprise-grade hardware, with a guided 5-step pipeline and live training dashboard.
+> **QLoRA fine-tuning wrapped in a guided five-step pipeline — pick a model, prepare data, configure LoRA, train, evaluate — with live loss curves behind a FastAPI backend.** Targets 2B to 70B models on hardware that cannot full-fine-tune them. The comparison below is the reason the constraint is worth accepting.
+>
+> **Result:** LoRA trains **0.24%** of GPT-2's parameters (295K of 124M) and still beats full fine-tuning on held-out perplexity — **16.13 vs 20.41** — while running 3.5× faster.
+>
+> **Try it on CPU:** `pytest backend/tests -q` (the API runs in CI on CPU torch; real training needs a GPU)
 
 ---
 
@@ -237,6 +242,9 @@ pip install -r requirements.txt
 
 # Or install backend dependencies directly
 cd backend && pip install -r requirements.txt && cd ..
+
+# Test/demo dependencies (needed for `pytest backend/tests -q`)
+pip install pytest pytest-asyncio httpx ruff
 
 # Frontend
 cd frontend && npm install

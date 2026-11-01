@@ -1,0 +1,23 @@
+# Tool configuration only: the backend is a FastAPI application executed from
+# backend/ (e.g. `uvicorn main:app`), not a distributable package, so there is
+# intentionally no [project] table here.
+
+[tool.pytest.ini_options]
+testpaths = ["backend/tests"]
+pythonpath = ["backend"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["frontend", "models", "storage", "cache", "logs"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+strict = false
+warn_unused_ignores = true
