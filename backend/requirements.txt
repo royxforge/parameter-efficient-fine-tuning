@@ -20,7 +20,7 @@ optimum>=1.16.0
 # auto-gptq>=0.7.0  # Optional: Requires CUDA compilation, skip for Windows unless needed
 
 # Data Processing
-pandas>=2.2.0
+pandas>=3.1.1
 numpy>=1.26.0
 pyarrow>=10.0.1  # Pre-built wheels available, required by datasets
 openpyxl>=3.1.0
